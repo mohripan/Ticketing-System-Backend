@@ -7,25 +7,35 @@ import jakarta.persistence.*;
 public class User {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
+    @Column(name = "user_id")
     private Long userID;
 
-    @Column(unique=true)
+    @Column(unique=true, name = "email")
     private String email;
 
-    @Column(name="encryptedPassword")
+    @Column(name="encrypted_password")
     private String encryptedPassword;
 
-    @Column(name="userName")
+    @Column(name="user_name")
     private String userName;
 
     @Column(name="name")
     private String name;
 
-    @Column(name="departmentID")
-    private Long departmentID;  // Assuming Department is another table
+    public Department getDepartment() {
+        return department;
+    }
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;  // Enum
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    @ManyToOne
+    @JoinColumn(name="department_id")
+    private Department department;
+
+    @Column(name="role")
+    private String role;
 
     public Long getUserID() {
         return userID;
@@ -59,34 +69,29 @@ public class User {
         this.userName = userName;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public User(Long userID, String email, String encryptedPassword, String userName, String name, Department department, String role) {
+        this.userID = userID;
+        this.email = email;
+        this.encryptedPassword = encryptedPassword;
+        this.userName = userName;
+        this.name = name;
+        this.department = department;
+        this.role = role;
     }
 
     public void setName(String name) {
         this.name = name;
     }
-
-    public Long getDepartmentID() {
-        return departmentID;
-    }
-
-    public void setDepartmentID(Long departmentID) {
-        this.departmentID = departmentID;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
-    public User() {
-    }
-}
-
-enum UserRole {
-    STAFF, MANAGER
 }

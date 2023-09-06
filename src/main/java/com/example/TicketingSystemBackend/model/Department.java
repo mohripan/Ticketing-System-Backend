@@ -10,6 +10,9 @@ public class Department {
         this.departmentName = departmentName;
     }
 
+    public Department() {
+    }
+
     public Long getDepartmentID() {
         return departmentID;
     }
