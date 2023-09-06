@@ -28,8 +28,9 @@ public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name="department_id")
     private Long departmentID;
 
-    @Column(name="DepartmentName")
+    @Column(name="department_name")
     private String departmentName;
 }
