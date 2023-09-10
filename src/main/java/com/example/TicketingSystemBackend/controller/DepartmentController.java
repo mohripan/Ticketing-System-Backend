@@ -25,14 +25,14 @@ public class DepartmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {
+    public ResponseEntity<Department> getDepartmentById(@PathVariable Integer id) {
         return departmentService.getDepartmentById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, Department department) {
+    public ResponseEntity<Department> updateDepartment(@PathVariable Integer id, Department department) {
         Department updatedDepartment = departmentService.updateDepartment(id, department);
         if(updatedDepartment != null) {
             return ResponseEntity.ok(updatedDepartment);
@@ -42,7 +42,7 @@ public class DepartmentController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDepartment(@PathVariable Integer id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();
     }

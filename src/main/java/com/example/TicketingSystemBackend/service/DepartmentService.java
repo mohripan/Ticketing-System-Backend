@@ -21,11 +21,11 @@ public class DepartmentService {
         return departmentRepository.findAll();
     }
 
-    public Optional<Department> getDepartmentById(Long id) {
+    public Optional<Department> getDepartmentById(Integer id) {
         return departmentRepository.findById(id);
     }
 
-    public Department updateDepartment(Long id, Department department) {
+    public Department updateDepartment(Integer id, Department department) {
         if(departmentRepository.existsById(id)) {
             department.setDepartmentID(id);
             return departmentRepository.save(department);
@@ -34,7 +34,7 @@ public class DepartmentService {
         return null;
     }
 
-    public void deleteDepartment(Long id) {
+    public void deleteDepartment(Integer id) {
         departmentRepository.deleteById(id);
     }
 }
