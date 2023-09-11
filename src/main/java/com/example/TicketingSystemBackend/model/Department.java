@@ -18,7 +18,7 @@ public class Department {
     private String departmentName;
 
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference(value = "user-department")
     private List<User> users;
 
     public Department() {

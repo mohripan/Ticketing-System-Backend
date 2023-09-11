@@ -19,7 +19,7 @@ public class Role {
     private String description;
 
     @OneToMany(mappedBy = "role")
-    @JsonManagedReference
+    @JsonManagedReference(value = "user-role")
     private List<User> users;
 
     @ManyToMany

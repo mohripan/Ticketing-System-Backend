@@ -25,12 +25,12 @@ public class User {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="department_id")
-    @JsonBackReference
+    @JsonBackReference(value = "user-department")
     private Department department;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="role_id")
-    @JsonBackReference
+    @JsonBackReference(value = "user-role")
     private Role role;
 
     public User() {
