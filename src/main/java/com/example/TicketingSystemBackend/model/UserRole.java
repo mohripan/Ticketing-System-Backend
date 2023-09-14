@@ -1,7 +1,8 @@
 package com.example.TicketingSystemBackend.model;
 
 public enum UserRole {
-    MANAGER(1, "ROLE_MANAGER");
+    MANAGER(1, "ROLE_MANAGER"),
+    STAFF(2, "ROLE_STAFF");
 
     private final int roleId;
     private final String roleStr;
