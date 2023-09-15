@@ -52,7 +52,7 @@ public class UserService {
     }
 
     public String login(String email, String password) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email Not Found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User Not Found"));
         if(passwordEncoder.matches(password, user.getEncryptedPassword())) {
             UserDTO userDTO = convertToDTO(user);
             UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getEmail());

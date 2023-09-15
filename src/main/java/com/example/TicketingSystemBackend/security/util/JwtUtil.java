@@ -27,6 +27,11 @@ public class JwtUtil {
         return decodeToken(token).getClaim("roleID").asInt();
     }
 
+    public Integer extractDepartmentID(String token) {
+        return decodeToken(token).getClaim("departmentID").asInt();
+    }
+
+
     public Date extractExpiration(String token) {
         return decodeToken(token).getExpiresAt();
     }
@@ -39,6 +44,7 @@ public class JwtUtil {
         JWTCreator.Builder builder = JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withClaim("roleID", userDTO.getRoleID())
+                .withClaim("departmentID", userDTO.getDepartmentID())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10));  // Token validity
 
         return builder.sign(Algorithm.HMAC256(SECRET_KEY));
