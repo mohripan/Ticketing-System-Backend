@@ -5,6 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -16,5 +20,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StackOverflowError.class)
     public ResponseEntity<String> handleStackOverflowError() {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Stack overflow error occurred!");
+    }
+
+    @ExceptionHandler(value = {Exception.class})
+    public ResponseEntity<Object> handleGenericException(Exception ex) {
+        Map<String, Object> errorBody = new HashMap<>();
+        errorBody.put("message", ex.getMessage());
+        errorBody.put("timestamp", LocalDateTime.now());
+        return new ResponseEntity<>(errorBody, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
