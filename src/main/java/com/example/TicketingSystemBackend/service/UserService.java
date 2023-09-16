@@ -67,6 +67,10 @@ public class UserService {
         return modelMapper.map(user, UserDTO.class);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
     public User createUser(User user) {
         user.setEncryptedPassword(passwordEncoder.encode(user.getEncryptedPassword()));
 

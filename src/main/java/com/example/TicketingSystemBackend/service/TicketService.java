@@ -1,42 +1,49 @@
 package com.example.TicketingSystemBackend.service;
 
-import com.example.TicketingSystemBackend.model.Department;
-import com.example.TicketingSystemBackend.model.Ticket;
-import com.example.TicketingSystemBackend.model.TicketSeverity;
-import com.example.TicketingSystemBackend.model.User;
+import com.example.TicketingSystemBackend.model.*;
 import com.example.TicketingSystemBackend.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TicketService {
     @Autowired
     private TicketRepository ticketRepository;
 
-    public List<Ticket> getTicketsByUser(User user) {
-        return ticketRepository.findByUser(user);
+    public Optional<Ticket> findTicketById(Integer ticketId, User user) {
+        Optional<Ticket> ticket = ticketRepository.findByUserAndTicketID(user, ticketId);
+        if (ticket.isPresent()) {
+            return ticket;
+        }
+
+        // If not, and the user is a MANAGER, fetch the ticket.
+        if (UserRole.fromRoleId(user.getRole().getRoleId()) == UserRole.MANAGER) {
+            return ticketRepository.findById(ticketId);
+        }
+
+        return Optional.empty();
     }
 
-    public List<Ticket> getTicketsByAssignedTo(Integer assignedTo) {
-        return ticketRepository.findByAssignedTo(assignedTo);
+    public boolean closeTicket(Integer ticketId, User user) {
+        Optional<Ticket> ticketOpt = findTicketById(ticketId, user);
+        if (ticketOpt.isPresent()) {
+            Ticket ticket = ticketOpt.get();
+            ticket.setTicketStatus("CLOSED");
+            ticketRepository.save(ticket);
+            return true;
+        }
+        return false;
     }
 
-    public List<Ticket> getTicketsByDepartment(Department department) {
-        return ticketRepository.findByTicketTagDepartment(department);
+    public List<Ticket> getAllTickets() {
+        return ticketRepository.findAll();
     }
 
-    public List<Ticket> getTicketsByStatus(String ticketStatus) {
-        return ticketRepository.findByTicketStatus(ticketStatus);
-    }
-
-    public List<Ticket> getTicketsBySeverity(TicketSeverity ticketSeverity) {
-        return ticketRepository.findByTicketSeverity(ticketSeverity);
-    }
-
-    public List<Ticket> getTicketsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findByCreatedDateBetween(startDate, endDate);
+    public List<Ticket> getTicketsByAssignedToAndDepartment(User assignedTo, Integer departmentID) {
+        return ticketRepository.findByAssignedToAndTicketTag_Department_DepartmentID(assignedTo, departmentID);
     }
 }

@@ -22,6 +22,7 @@ public class Role {
     @JsonManagedReference(value = "user-role")
     private List<User> users;
 
+    // @ManyToMany(fetch = FetchType.EAGER)
     @ManyToMany
     @JoinTable(
             name = "role_permissions",

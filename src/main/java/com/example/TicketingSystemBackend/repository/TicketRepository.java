@@ -8,12 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TicketRepository extends JpaRepository<Ticket, Integer> {
-    List<Ticket> findByUser(User user);
-    List<Ticket> findByAssignedTo(Integer assignedTo);
-    List<Ticket> findByTicketTagDepartment(Department department);
-    List<Ticket> findByTicketStatus(String ticketStatus);
-    List<Ticket> findByTicketSeverity(TicketSeverity ticketSeverity);
-    List<Ticket> findByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    Optional<Ticket> findByUserAndTicketID(User user, Integer ticketID);
+    List<Ticket> findByAssignedToAndTicketTag_Department_DepartmentID(User assignedTo, Integer departmentID);
+    List<Ticket> findAll();
 }

@@ -31,8 +31,10 @@ public class Ticket {
     @Column(name = "ticket_status")
     private String ticketStatus;
 
-    @Column(name = "assigned_to")
-    private Integer assignedTo;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assigned_to")
+    @JsonBackReference(value = "assigned-user")
+    private User assignedTo;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="ticket_tag_id")
     @JsonBackReference(value = "ticket-tag")
@@ -46,7 +48,7 @@ public class Ticket {
     public Ticket() {
     }
 
-    public Ticket(Integer ticketID, User user, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus, Integer assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity) {
+    public Ticket(Integer ticketID, User user, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity) {
         this.ticketID = ticketID;
         this.user = user;
         this.createdDate = createdDate;
@@ -106,11 +108,11 @@ public class Ticket {
         this.ticketStatus = ticketStatus;
     }
 
-    public Integer getAssignedTo() {
+    public User getAssignedTo() {
         return assignedTo;
     }
 
-    public void setAssignedTo(Integer assignedTo) {
+    public void setAssignedTo(User assignedTo) {
         this.assignedTo = assignedTo;
     }
 
