@@ -152,6 +152,7 @@ public class Ticket {
         dto.setCreatedDate(this.getCreatedDate());
         dto.setTicketAttachmentPath(this.getTicketAttachmentPath());
         dto.setTicketContent(this.getTicketContent());
+        dto.setTicketStatus(this.getTicketStatus());
         return dto;
     }
 }

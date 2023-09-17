@@ -8,16 +8,18 @@ public class TicketDTO {
     private LocalDateTime createdDate;
     private String ticketAttachmentPath;
     private String ticketContent;
+    private String ticketStatus;
 
     public TicketDTO() {
     }
 
-    public TicketDTO(String userName, String ticketNumber, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent) {
+    public TicketDTO(String userName, String ticketNumber, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus) {
         this.userName = userName;
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
         this.ticketAttachmentPath = ticketAttachmentPath;
         this.ticketContent = ticketContent;
+        this.ticketStatus = ticketStatus;
     }
 
     public String getUserName() {
@@ -58,5 +60,13 @@ public class TicketDTO {
 
     public void setTicketContent(String ticketContent) {
         this.ticketContent = ticketContent;
+    }
+
+    public String getTicketStatus() {
+        return ticketStatus;
+    }
+
+    public void setTicketStatus(String ticketStatus) {
+        this.ticketStatus = ticketStatus;
     }
 }

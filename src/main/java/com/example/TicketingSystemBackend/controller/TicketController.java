@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,19 +43,33 @@ public class TicketController {
 
     @PreAuthorize("hasAuthority('READ_TICKETS')")
     @GetMapping("/user/myTickets")
-    public ResponseEntity<List<TicketDTO>> getTicketsByUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<TicketDTO>> getTicketsByUser(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String ticketNumber
+    ) {
         token = token.replace("Bearer ", "");
         User authenticatedUser = authenticationService.getAuthenticatedUser(token);
         Integer departmentID = authenticationService.getDepartmentFromToken(token);
-        List<Ticket> tickets = ticketService.getTicketsByAssignedToAndDepartment(authenticatedUser, departmentID);
+        List<Ticket> tickets = ticketService.getTicketsByAssignedToAndDepartmentAndFilters(authenticatedUser, departmentID, startDate, endDate, severity, status, ticketNumber);
         List<TicketDTO> ticketDTOs = tickets.stream().map(Ticket::toDTO).collect(Collectors.toList());
         return ResponseEntity.ok(ticketDTOs);
     }
 
     @PreAuthorize("hasRole('ROLE_MANAGER')")
     @GetMapping("/manager/allTicketsForManager")
-    public ResponseEntity<List<TicketDTO>> getAllTicketsForManager() {
-        List<Ticket> tickets = ticketService.getAllTickets();
+    public ResponseEntity<List<TicketDTO>> getAllTicketsForManager(
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String assignedUser,
+            @RequestParam(required = false) String ticketNumber
+    ) {
+        List<Ticket> tickets = ticketService.getAllTicketsForManagerWithFilters(startDate, endDate, severity, status, assignedUser, ticketNumber);
         List<TicketDTO> ticketDTOs = tickets.stream().map(Ticket::toDTO).collect(Collectors.toList());
         return ResponseEntity.ok(ticketDTOs);
     }
