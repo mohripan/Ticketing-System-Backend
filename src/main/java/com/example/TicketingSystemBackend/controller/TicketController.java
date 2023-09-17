@@ -1,5 +1,6 @@
 package com.example.TicketingSystemBackend.controller;
 
+import com.example.TicketingSystemBackend.dto.TicketDTO;
 import com.example.TicketingSystemBackend.model.Ticket;
 import com.example.TicketingSystemBackend.model.User;
 import com.example.TicketingSystemBackend.repository.TicketSeverityRepository;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -40,19 +42,21 @@ public class TicketController {
 
     @PreAuthorize("hasAuthority('READ_TICKETS')")
     @GetMapping("/user/myTickets")
-    public ResponseEntity<List<Ticket>> getTicketsByUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<TicketDTO>> getTicketsByUser(@RequestHeader("Authorization") String token) {
         token = token.replace("Bearer ", "");
         User authenticatedUser = authenticationService.getAuthenticatedUser(token);
         Integer departmentID = authenticationService.getDepartmentFromToken(token);
         List<Ticket> tickets = ticketService.getTicketsByAssignedToAndDepartment(authenticatedUser, departmentID);
-        return ResponseEntity.ok(tickets);
+        List<TicketDTO> ticketDTOs = tickets.stream().map(Ticket::toDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(ticketDTOs);
     }
 
     @PreAuthorize("hasRole('ROLE_MANAGER')")
     @GetMapping("/manager/allTicketsForManager")
-    public ResponseEntity<List<Ticket>> getAllTicketsForManager() {
+    public ResponseEntity<List<TicketDTO>> getAllTicketsForManager() {
         List<Ticket> tickets = ticketService.getAllTickets();
-        return ResponseEntity.ok(tickets);
+        List<TicketDTO> ticketDTOs = tickets.stream().map(Ticket::toDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(ticketDTOs);
     }
 
     @PreAuthorize("hasAuthority('CLOSE_TICKETS')")
@@ -73,5 +77,13 @@ public class TicketController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasAuthority('ASSIGN_TICKETS')")
+    @PutMapping("/manager/assign/{ticketId}")
+    public ResponseEntity<Ticket> assignTicket(@PathVariable Integer ticketId,
+                                               @RequestBody User assignedTo) {
+        Ticket updatedTicket = ticketService.assignTicketToUser(ticketId, assignedTo);
+        return ResponseEntity.ok(updatedTicket);
     }
 }

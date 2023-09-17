@@ -1,5 +1,6 @@
 package com.example.TicketingSystemBackend.model;
 
+import com.example.TicketingSystemBackend.dto.TicketDTO;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
@@ -18,6 +19,9 @@ public class Ticket {
     @JoinColumn(name = "user_id")
     @JsonBackReference(value = "ticket-user")
     private User user;
+
+    @Column(name = "ticket_number")
+    private String ticketNumber;
 
     @Column(name = "created_date")
     private LocalDateTime createdDate;
@@ -48,9 +52,10 @@ public class Ticket {
     public Ticket() {
     }
 
-    public Ticket(Integer ticketID, User user, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity) {
+    public Ticket(Integer ticketID, User user, String ticketNumber, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity) {
         this.ticketID = ticketID;
         this.user = user;
+        this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
         this.ticketAttachmentPath = ticketAttachmentPath;
         this.ticketContent = ticketContent;
@@ -74,6 +79,14 @@ public class Ticket {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getTicketNumber() {
+        return ticketNumber;
+    }
+
+    public void setTicketNumber(String ticketNumber) {
+        this.ticketNumber = ticketNumber;
     }
 
     public LocalDateTime getCreatedDate() {
@@ -130,5 +143,15 @@ public class Ticket {
 
     public void setTicketSeverity(TicketSeverity ticketSeverity) {
         this.ticketSeverity = ticketSeverity;
+    }
+
+    public TicketDTO toDTO() {
+        TicketDTO dto = new TicketDTO();
+        dto.setUserName(this.getUser().getUserName());
+        dto.setTicketNumber(this.getTicketNumber());
+        dto.setCreatedDate(this.getCreatedDate());
+        dto.setTicketAttachmentPath(this.getTicketAttachmentPath());
+        dto.setTicketContent(this.getTicketContent());
+        return dto;
     }
 }
