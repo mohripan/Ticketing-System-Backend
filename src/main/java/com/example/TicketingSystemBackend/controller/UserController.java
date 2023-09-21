@@ -36,13 +36,14 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ROLE_MANAGER')")
+    @PreAuthorize("hasAuthority('CREATE_USER')")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('DELETE_USER')")
     public void deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
     }

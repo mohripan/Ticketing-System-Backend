@@ -39,6 +39,9 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private TokenService tokenService;
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -56,7 +59,11 @@ public class UserService {
         if(passwordEncoder.matches(password, user.getEncryptedPassword())) {
             UserDTO userDTO = convertToDTO(user);
             UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getEmail());
-            return jwtUtil.generateToken(userDetails, userDTO);
+            String jwt = jwtUtil.generateToken(userDetails, userDTO);
+
+            tokenService.saveToken(email, jwt);
+
+            return jwt;
         } else {
             throw new RuntimeException("Incorrect Password");
         }
