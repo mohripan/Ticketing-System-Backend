@@ -1,4 +1,4 @@
-package com.example.TicketingSystemBackend.exception;
+package com.example.TicketingSystemBackend.controller;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
@@ -38,12 +38,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleAccessDenied(AccessDeniedException ex) {
         ErrorResponseDTO error = new ErrorResponseDTO(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
-    }
-
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<ErrorResponseDTO> handleTokenExpiredException(TokenExpiredException ex) {
-        ErrorResponseDTO error = new ErrorResponseDTO(ex.getMessage(), HttpStatus.UNAUTHORIZED.value());
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(JWTDecodeException.class)

@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface TicketRepository extends JpaRepository<Ticket, Integer> {
 
     Optional<Ticket> findByUserAndTicketID(User user, Integer ticketID);
+    Optional<Ticket> findByAssignedToAndTicketID(User assignedTo, Integer ticketID);
     List<Ticket> findByAssignedToAndTicketTag_Department_DepartmentID(User assignedTo, Integer departmentID);
     List<Ticket> findAll();
 }

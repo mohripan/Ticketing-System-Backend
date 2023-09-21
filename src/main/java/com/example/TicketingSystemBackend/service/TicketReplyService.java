@@ -27,9 +27,4 @@ public class TicketReplyService {
     public TicketReply saveReply(TicketReply ticketReply) {
         return ticketReplyRepository.save(ticketReply);
     }
-
-    public Ticket closeTicket(Ticket ticket) {
-        ticket.setTicketStatus("Closed");
-        return ticketRepository.save(ticket);
-    }
 }

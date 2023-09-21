@@ -64,7 +64,7 @@ public class TicketService {
     }
 
     public boolean closeTicket(Integer ticketId, User user) {
-        Optional<Ticket> ticketOpt = findTicketById(ticketId, user);
+        Optional<Ticket> ticketOpt = ticketRepository.findByAssignedToAndTicketID(user, ticketId);
         if (ticketOpt.isPresent()) {
             Ticket ticket = ticketOpt.get();
             ticket.setTicketStatus("CLOSED");
@@ -82,20 +82,15 @@ public class TicketService {
         return ticketRepository.findByAssignedToAndTicketTag_Department_DepartmentID(assignedTo, departmentID);
     }
 
-    public List<Ticket> getTicketsByAssignedToAndDepartmentAndFilters(User user, Integer departmentID, LocalDate startDate, LocalDate endDate, String severity, String status, String ticketNumber) {
+    public List<Ticket> getTicketsByAssignedToAndDepartmentAndFilters(User user, Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity, String status, String ticketNumber) {
         StringBuilder queryStr = new StringBuilder("SELECT t FROM Ticket t JOIN t.ticketTag tt JOIN tt.department d JOIN t.ticketSeverity ts WHERE t.assignedTo = :user AND d.departmentID = :departmentID");
 
-        LocalDateTime startDateTime = null;
-        LocalDateTime endDateTime = null;
-
         if (startDate != null) {
-            startDateTime = startDate.atStartOfDay();
-            queryStr.append(" AND t.createdDate >= :startDateTime");
+            queryStr.append(" AND t.createdDate >= :startDate");
         }
 
         if (endDate != null) {
-            endDateTime = endDate.plusDays(1).atStartOfDay();
-            queryStr.append(" AND t.createdDate <= :endDateTime");
+            queryStr.append(" AND t.createdDate <= :endDate");
         }
 
         if (severity != null) {
@@ -138,7 +133,7 @@ public class TicketService {
         return query.getResultList();
     }
 
-    public List<Ticket> getAllTicketsForManagerWithFilters(LocalDate startDate, LocalDate endDate, String severity, String status, String assignedUser, String ticketNumber) {
+    public List<Ticket> getAllTicketsForManagerWithFilters(LocalDateTime startDate, LocalDateTime endDate, String severity, String status, String assignedUser, String ticketNumber) {
         StringBuilder queryStr = new StringBuilder("SELECT t FROM Ticket t");
         if (severity != null || status != null) {
             queryStr.append(" JOIN t.ticketSeverity ts");
@@ -149,17 +144,12 @@ public class TicketService {
 
         queryStr.append(" WHERE 1=1"); // A dummy condition to simplify the appending of other conditions
 
-        LocalDateTime startDateTime = null;
-        LocalDateTime endDateTime = null;
-
         if (startDate != null) {
-            startDateTime = startDate.atStartOfDay();
-            queryStr.append(" AND t.createdDate >= :startDateTime");
+            queryStr.append(" AND t.createdDate >= :startDate");
         }
 
         if (endDate != null) {
-            endDateTime = endDate.plusDays(1).atStartOfDay();
-            queryStr.append(" AND t.createdDate < :endDateTime");
+            queryStr.append(" AND t.createdDate < :endDate");
         }
 
         if (severity != null) {
@@ -180,12 +170,12 @@ public class TicketService {
 
         Query query = entityManager.createQuery(queryStr.toString());
 
-        if (startDateTime != null) {
-            query.setParameter("startDateTime", startDateTime);
+        if (startDate != null) {
+            query.setParameter("startDate", startDate);
         }
 
-        if (endDateTime != null) {
-            query.setParameter("endDateTime", endDateTime);
+        if (endDate != null) {
+            query.setParameter("endDate", endDate);
         }
 
         if (severity != null) {
