@@ -1,5 +1,8 @@
 package com.example.TicketingSystemBackend.controller;
 
+import com.example.TicketingSystemBackend.dto.DepartmentListDTO;
+import com.example.TicketingSystemBackend.dto.DepartmentResponseDTO;
+import com.example.TicketingSystemBackend.dto.DepartmentSingleViewDTO;
 import com.example.TicketingSystemBackend.model.Department;
 import com.example.TicketingSystemBackend.service.DepartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +26,23 @@ public class DepartmentController {
 
     @PreAuthorize("hasAuthority('VIEW_DEPARTMENT')")
     @GetMapping("/view")
-    public ResponseEntity<List<Department>> getAllDepartments() {
+    public ResponseEntity<List<DepartmentResponseDTO>> getAllDepartments() {
         return ResponseEntity.ok(departmentService.getAllDepartments());
     }
 
     @PreAuthorize("hasAuthority('VIEW_SINGLE_DEPARTMENT')")
     @GetMapping("/view/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Integer id) {
+    public ResponseEntity<DepartmentSingleViewDTO> getDepartmentById(@PathVariable Integer id) {
         return departmentService.getDepartmentById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PreAuthorize("hasAuthority('VIEW_STAFF_DEPARTMENT_LIST')")
+    @GetMapping("/view/staff/{departmentID}")
+    public ResponseEntity<DepartmentListDTO> getUsersByDepartment(@PathVariable Integer departmentID) {
+        DepartmentListDTO users = departmentService.getUsersByDepartmentAndRoleId(departmentID);
+        return ResponseEntity.ok(users);
     }
 
     @PreAuthorize("hasAuthority('UPDATE_DEPARTMENT')")

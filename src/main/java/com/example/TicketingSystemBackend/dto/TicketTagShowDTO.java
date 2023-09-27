@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class TicketTagShowDTO {
     private String tagName;
     private String description;
+    private Integer departmentID;
     private String departmentName;
     private LocalDateTime createdDate;
     private String createdByUsername;
@@ -12,9 +13,10 @@ public class TicketTagShowDTO {
     public TicketTagShowDTO() {
     }
 
-    public TicketTagShowDTO(String tagName, String description, String departmentName, LocalDateTime createdDate, String createdByUsername) {
+    public TicketTagShowDTO(String tagName, String description, Integer departmentID, String departmentName, LocalDateTime createdDate, String createdByUsername) {
         this.tagName = tagName;
         this.description = description;
+        this.departmentID = departmentID;
         this.departmentName = departmentName;
         this.createdDate = createdDate;
         this.createdByUsername = createdByUsername;
@@ -34,6 +36,14 @@ public class TicketTagShowDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Integer getDepartmentID() {
+        return departmentID;
+    }
+
+    public void setDepartmentID(Integer departmentID) {
+        this.departmentID = departmentID;
     }
 
     public String getDepartmentName() {

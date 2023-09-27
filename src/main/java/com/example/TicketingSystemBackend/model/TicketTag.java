@@ -124,6 +124,7 @@ public class TicketTag {
         TicketTagShowDTO dto = new TicketTagShowDTO();
         dto.setTagName(this.getTagName());
         dto.setDescription(this.getDescription());
+        dto.setDepartmentID(this.getDepartment().getDepartmentID());
         dto.setCreatedDate(this.getCreatedDate());
         dto.setDepartmentName(this.getDepartment().getDepartmentName());
         dto.setCreatedByUsername(this.getUser().getUserName());
