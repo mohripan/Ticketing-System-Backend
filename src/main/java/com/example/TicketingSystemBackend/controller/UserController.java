@@ -31,7 +31,7 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @PreAuthorize("hasAuthority('VIEW_SINGLE_USER')")
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Integer id) {
         return userService.getUserById(id);

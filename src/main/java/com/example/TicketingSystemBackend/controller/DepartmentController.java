@@ -27,7 +27,7 @@ public class DepartmentController {
         return ResponseEntity.ok(departmentService.getAllDepartments());
     }
 
-    @PreAuthorize("hasAuthority('VIEW_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('VIEW_SINGLE_DEPARTMENT')")
     @GetMapping("/view/{id}")
     public ResponseEntity<Department> getDepartmentById(@PathVariable Integer id) {
         return departmentService.getDepartmentById(id)
