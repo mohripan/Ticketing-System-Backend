@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/customers/**").permitAll()
                         .requestMatchers("/api/token/**").permitAll()
                         .requestMatchers("/api/attachments/**").permitAll()
-                        .requestMatchers("/api/users/logout").authenticated()
+                        .requestMatchers("/api/users/logout").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
