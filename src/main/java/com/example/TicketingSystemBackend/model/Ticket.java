@@ -1,10 +1,13 @@
 package com.example.TicketingSystemBackend.model;
 
+import com.example.TicketingSystemBackend.dto.CreateTicketDTO;
 import com.example.TicketingSystemBackend.dto.TicketDTO;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tickets")
@@ -15,19 +18,14 @@ public class Ticket {
     @Column(name = "ticket_id")
     private Integer ticketID;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    @JsonBackReference(value = "ticket-user")
-    private User user;
-
     @Column(name = "ticket_number")
     private String ticketNumber;
 
     @Column(name = "created_date")
     private LocalDateTime createdDate;
 
-    @Column(name = "ticket_attachment_path")
-    private String ticketAttachmentPath;
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Attachment> attachments = new ArrayList<>();
 
     @Column(name = "ticket_content")
     private String ticketContent;
@@ -49,20 +47,25 @@ public class Ticket {
     @JsonBackReference(value = "ticket-severity")
     private TicketSeverity ticketSeverity;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id")
+    @JsonBackReference(value = "ticket-customer")
+    private Customer customer;
+
     public Ticket() {
     }
 
-    public Ticket(Integer ticketID, User user, String ticketNumber, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity) {
+    public Ticket(Integer ticketID, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachment, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity, Customer customer) {
         this.ticketID = ticketID;
-        this.user = user;
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
-        this.ticketAttachmentPath = ticketAttachmentPath;
+        this.attachments = attachment;
         this.ticketContent = ticketContent;
         this.ticketStatus = ticketStatus;
         this.assignedTo = assignedTo;
         this.ticketTag = ticketTag;
         this.ticketSeverity = ticketSeverity;
+        this.customer = customer;
     }
 
     public Integer getTicketID() {
@@ -71,14 +74,6 @@ public class Ticket {
 
     public void setTicketID(Integer ticketID) {
         this.ticketID = ticketID;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public String getTicketNumber() {
@@ -97,12 +92,12 @@ public class Ticket {
         this.createdDate = createdDate;
     }
 
-    public String getTicketAttachmentPath() {
-        return ticketAttachmentPath;
+    public List<Attachment> getAttachments() {
+        return attachments;
     }
 
-    public void setTicketAttachmentPath(String ticketAttachmentPath) {
-        this.ticketAttachmentPath = ticketAttachmentPath;
+    public void setAttachments(List<Attachment> attachments) {
+        this.attachments = attachments;
     }
 
     public String getTicketContent() {
@@ -145,14 +140,36 @@ public class Ticket {
         this.ticketSeverity = ticketSeverity;
     }
 
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
     public TicketDTO toDTO() {
         TicketDTO dto = new TicketDTO();
-        dto.setUserName(this.getUser().getUserName());
+        dto.setUserName(this.assignedTo != null ? this.assignedTo.getUserName() : null);
         dto.setTicketNumber(this.getTicketNumber());
         dto.setCreatedDate(this.getCreatedDate());
-        dto.setTicketAttachmentPath(this.getTicketAttachmentPath());
+        dto.setAttachments(this.getAttachments());
         dto.setTicketContent(this.getTicketContent());
         dto.setTicketStatus(this.getTicketStatus());
+        return dto;
+    }
+
+    public CreateTicketDTO createTicketDTO() {
+        CreateTicketDTO dto = new CreateTicketDTO();
+        dto.setTicketID(this.getTicketID());
+        dto.setTicketNumber(this.getTicketNumber());
+        dto.setCreatedDate(this.getCreatedDate());
+        dto.setTicketContent(this.getTicketContent());
+        dto.setTicketStatus(this.getTicketStatus());
+        dto.setAssignedTo(this.getAssignedTo().getUserID());
+        dto.setTicketTagID(this.getTicketTag().getTicketTagID());
+        dto.setSeverityID(this.getTicketSeverity().getSeverityID());
+        dto.setCustomerID(this.getCustomer().getCustomerID());
         return dto;
     }
 }

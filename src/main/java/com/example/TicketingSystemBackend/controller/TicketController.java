@@ -13,6 +13,8 @@ import com.example.TicketingSystemBackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,15 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/tickets")
 public class TicketController {
+
+    public static class TicketFilter {
+        public LocalDateTime startDate;
+        public LocalDateTime endDate;
+        public String severity;
+        public String status;
+        public String assignedUser;
+        public String ticketNumber;
+    }
     @Autowired
     private TicketService ticketService;
 
@@ -45,6 +56,9 @@ public class TicketController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
 
 
     @PreAuthorize("hasAuthority('READ_TICKETS')")
@@ -79,6 +93,14 @@ public class TicketController {
         List<TicketDTO> ticketDTOs = tickets.stream().map(Ticket::toDTO).collect(Collectors.toList());
         return ResponseEntity.ok(ticketDTOs);
     }
+
+//    @MessageMapping("/manager/filterTickets")
+//    public void filterTickets(TicketFilter filter) {
+//        List<Ticket> tickets = ticketService.getAllTicketsForManagerWithFilters(filter.startDate, filter.endDate, filter.severity, filter.status, filter.assignedUser, filter.ticketNumber);
+//        List<TicketDTO> ticketDTOs = tickets.stream().map(Ticket::toDTO).collect(Collectors.toList());
+//
+//        simpMessagingTemplate.convertAndSend("/topic/tickets", ticketDTOs);
+//    }
 
     @PreAuthorize("hasAuthority('CLOSE_TICKETS')")
     @PutMapping("/user/close/{ticketId}")

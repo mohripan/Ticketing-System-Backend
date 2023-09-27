@@ -5,6 +5,7 @@ import com.example.TicketingSystemBackend.model.TicketReply;
 import com.example.TicketingSystemBackend.model.User;
 import com.example.TicketingSystemBackend.repository.TicketRepository;
 import com.example.TicketingSystemBackend.security.util.JwtUtil;
+import com.example.TicketingSystemBackend.service.EmailService;
 import com.example.TicketingSystemBackend.service.TicketReplyService;
 import com.example.TicketingSystemBackend.service.TicketService;
 import com.example.TicketingSystemBackend.service.UserService;
@@ -34,8 +35,8 @@ public class TicketReplyController {
     @Autowired
     private JwtUtil jwtUtil;
 
-//    @Autowired
-//    private EmailService emailService;
+    @Autowired
+    private EmailService emailService;
 
     @PreAuthorize("hasAuthority('REPLY_TICKETS')")
     @PostMapping("/user/{ticketId}")
@@ -69,13 +70,13 @@ public class TicketReplyController {
         TicketReply savedReply = ticketReplyService.saveReply(newReply);
 
         // Send email notification to the customer
-//        String customerEmail = ticketOpt.get().getCustomer().getEmail();
-//        String subject = "Your Ticket #" + ticketId + " Has Been Replied To";
-//        String message = "Dear " + ticketOpt.get().getCustomer().getName() + ",\n\n" +
-//                "Your ticket has received a new reply. Please check it in our system.\n\n" +
-//                "Regards,\n" +
-//                "Support Team";
-//        emailService.sendSimpleMessage(customerEmail, subject, message);
+        String customerEmail = ticketOpt.get().getCustomer().getEmail();
+        String subject = "Your Ticket #" + ticketId + " Has Been Replied To";
+        String message = "Dear " + ticketOpt.get().getCustomer().getName() + ",\n\n" +
+                "Your ticket has received a new reply. Please check it in our system.\n\n" +
+                "Regards,\n" +
+                "Support Team";
+        emailService.sendSimpleMessage(customerEmail, subject, message);
 
         return ResponseEntity.ok(savedReply);
     }

@@ -38,6 +38,11 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/tickets/manager/filterTickets/**").permitAll()
+                        .requestMatchers("/api/customers/**").permitAll()
+                        .requestMatchers("/api/token/**").permitAll()
+                        .requestMatchers("/api/attachments/**").permitAll()
+                        .requestMatchers("/api/users/logout").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

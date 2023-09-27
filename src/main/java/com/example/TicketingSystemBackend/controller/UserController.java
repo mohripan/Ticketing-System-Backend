@@ -2,10 +2,10 @@ package com.example.TicketingSystemBackend.controller;
 
 import com.example.TicketingSystemBackend.dto.JwtResponseDTO;
 import com.example.TicketingSystemBackend.dto.LoginRequestDTO;
-import com.example.TicketingSystemBackend.dto.UserDTO;
 import com.example.TicketingSystemBackend.model.User;
+import com.example.TicketingSystemBackend.security.util.JwtUtil;
+import com.example.TicketingSystemBackend.service.TokenService;
 import com.example.TicketingSystemBackend.service.UserService;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,11 +19,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @PreAuthorize("hasRole('ROLE_MANAGER')")
     @GetMapping
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
+    @PreAuthorize("hasAuthority('VIEW_USER')")
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Integer id) {
         return userService.getUserById(id);
@@ -46,5 +54,16 @@ public class UserController {
     @PreAuthorize("hasAuthority('DELETE_USER')")
     public void deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        String jwt = token.split(" ")[1];
+
+        String email = jwtUtil.extractUsername(jwt);
+
+        tokenService.invalidateToken(email);
+
+        return ResponseEntity.ok().body("Logged out successfully");
     }
 }

@@ -7,7 +7,9 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.TicketingSystemBackend.dto.UserDTO;
 import com.example.TicketingSystemBackend.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,9 @@ public class JwtUtil {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${jwt.expiration.time}") // Reading the property
+    private long jwtExpirationTime;
 
     private DecodedJWT decodeToken(String token) {
         return JWT.require(Algorithm.HMAC256(SECRET_KEY)).build().verify(token);
@@ -50,7 +55,7 @@ public class JwtUtil {
                 .withSubject(userDetails.getUsername())
                 .withClaim("roleID", userDTO.getRoleID())
                 .withClaim("departmentID", userDTO.getDepartmentID())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10));  // Token validity
+                .withExpiresAt(new Date(System.currentTimeMillis() + jwtExpirationTime));  // Token validity
 
         return builder.sign(Algorithm.HMAC256(SECRET_KEY));
     }

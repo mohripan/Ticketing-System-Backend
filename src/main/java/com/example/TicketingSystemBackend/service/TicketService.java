@@ -1,14 +1,14 @@
 package com.example.TicketingSystemBackend.service;
 
+import com.example.TicketingSystemBackend.dto.CreateTicketDTO;
 import com.example.TicketingSystemBackend.model.*;
-import com.example.TicketingSystemBackend.repository.TicketRepository;
-import com.example.TicketingSystemBackend.repository.UserRepository;
+import com.example.TicketingSystemBackend.repository.*;
 import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
-import java.time.LocalDate;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -16,6 +16,8 @@ import java.util.Optional;
 
 @Service
 public class TicketService {
+
+    private static final SecureRandom secureRandom = new SecureRandom();
     @Autowired
     private TicketRepository ticketRepository;
 
@@ -24,6 +26,49 @@ public class TicketService {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private TicketTagRepository ticketTagRepository;
+
+    @Autowired
+    private TicketSeverityRepository ticketSeverityRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    public Ticket createTicket(CreateTicketDTO dto) {
+        Ticket ticket = new Ticket();
+
+        TicketTag ticketTag = ticketTagRepository.findById(dto.getTicketTagID())
+                .orElseThrow(() -> new RuntimeException("Ticket tag not found"));
+
+        Department department = ticketTag.getDepartment();
+
+        User assignedTo = userRepository.findTopByDepartmentAndRole_RoleId(department, 1)
+                .orElseThrow(() -> new RuntimeException("No manager found for the department"));
+
+        TicketSeverity ticketSeverity = ticketSeverityRepository.findById(dto.getSeverityID())
+                .orElseThrow(() -> new RuntimeException("Ticket severity not found"));
+
+        Customer customer = customerRepository.findById(dto.getCustomerID())
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        ticket.setTicketNumber(generateUniqueTicketNumber());
+        ticket.setCreatedDate(LocalDateTime.now());
+        ticket.setTicketContent(dto.getTicketContent());
+        ticket.setTicketStatus("PENDING");
+        ticket.setAssignedTo(assignedTo);
+        ticket.setTicketTag(ticketTag);
+        ticket.setTicketSeverity(ticketSeverity);
+        ticket.setCustomer(customer);
+
+        return ticketRepository.save(ticket);
+    }
+
+    private String generateUniqueTicketNumber() {
+        int randomNumber = secureRandom.nextInt(1_000_000);  // generates a random number between 0 (inclusive) and 1,000,000 (exclusive)
+        return "TICK" + String.format("%06d", randomNumber) + System.currentTimeMillis();
+    }
 
 
     public Ticket assignTicketToUser(Integer ticketId, User partialAssignedTo) {
@@ -51,7 +96,7 @@ public class TicketService {
     }
 
     public Optional<Ticket> findTicketById(Integer ticketId, User user) {
-        Optional<Ticket> ticket = ticketRepository.findByUserAndTicketID(user, ticketId);
+        Optional<Ticket> ticket = ticketRepository.findByAssignedToAndTicketID(user, ticketId);
         if (ticket.isPresent()) {
             return ticket;
         }
@@ -83,7 +128,7 @@ public class TicketService {
     }
 
     public List<Ticket> getTicketsByAssignedToAndDepartmentAndFilters(User user, Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity, String status, String ticketNumber) {
-        StringBuilder queryStr = new StringBuilder("SELECT t FROM Ticket t JOIN t.ticketTag tt JOIN tt.department d JOIN t.ticketSeverity ts WHERE t.assignedTo = :user AND d.departmentID = :departmentID");
+        StringBuilder queryStr = new StringBuilder("SELECT t FROM Ticket t JOIN t.ticketTag tt JOIN tt.department d JOIN t.ticketSeverity ts WHERE t.assignedTo = :assignedTo AND d.departmentID = :departmentID");
 
         if (startDate != null) {
             queryStr.append(" AND t.createdDate >= :startDate");
@@ -106,7 +151,7 @@ public class TicketService {
         }
 
         Query query = entityManager.createQuery(queryStr.toString());
-        query.setParameter("user", user);
+        query.setParameter("assignedTo", user);
         query.setParameter("departmentID", departmentID);
 
         if (startDate != null) {

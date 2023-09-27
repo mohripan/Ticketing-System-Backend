@@ -4,6 +4,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.example.TicketingSystemBackend.dto.ErrorResponseDTO;
 import com.example.TicketingSystemBackend.security.util.JwtUtil;
 import com.example.TicketingSystemBackend.service.CustomUserDetailsService;
+import com.example.TicketingSystemBackend.service.TokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,6 +27,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
 
+    @Autowired
+    private TokenService tokenService;
+
     public JwtRequestFilter(CustomUserDetailsService userDetailsService, JwtUtil jwtUtil) {
         this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
@@ -42,12 +46,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+            String email = jwtUtil.extractUsername(jwt);
+            String tokenFromRedis = tokenService.getToken(email);
+
+            if (tokenFromRedis == null || !jwt.equals(tokenFromRedis)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write(new ObjectMapper().writeValueAsString(new ErrorResponseDTO("Invalid or expired token.", HttpServletResponse.SC_UNAUTHORIZED)));
+                return;
+            }
+
             try {
                 username = jwtUtil.extractUsername(jwt);
             } catch (TokenExpiredException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write(new ObjectMapper().writeValueAsString(new ErrorResponseDTO(e.getMessage(), HttpServletResponse.SC_UNAUTHORIZED)));
-                return; // Important to stop the filter chain!
+                return;
             }
         }
 

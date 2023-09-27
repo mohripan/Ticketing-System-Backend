@@ -1,23 +1,27 @@
 package com.example.TicketingSystemBackend.dto;
 
+import com.example.TicketingSystemBackend.model.Attachment;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TicketDTO {
     private String userName;
     private String ticketNumber;
     private LocalDateTime createdDate;
-    private String ticketAttachmentPath;
+    private List<Attachment> attachments = new ArrayList<>();
     private String ticketContent;
     private String ticketStatus;
 
     public TicketDTO() {
     }
 
-    public TicketDTO(String userName, String ticketNumber, LocalDateTime createdDate, String ticketAttachmentPath, String ticketContent, String ticketStatus) {
+    public TicketDTO(String userName, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachments, String ticketContent, String ticketStatus) {
         this.userName = userName;
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
-        this.ticketAttachmentPath = ticketAttachmentPath;
+        this.attachments = attachments;
         this.ticketContent = ticketContent;
         this.ticketStatus = ticketStatus;
     }
@@ -46,12 +50,12 @@ public class TicketDTO {
         this.createdDate = createdDate;
     }
 
-    public String getTicketAttachmentPath() {
-        return ticketAttachmentPath;
+    public List<Attachment> getAttachments() {
+        return attachments;
     }
 
-    public void setTicketAttachmentPath(String ticketAttachmentPath) {
-        this.ticketAttachmentPath = ticketAttachmentPath;
+    public void setAttachments(List<Attachment> attachments) {
+        this.attachments = attachments;
     }
 
     public String getTicketContent() {
