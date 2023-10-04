@@ -3,6 +3,8 @@ package com.example.TicketingSystemBackend.dto;
 import java.time.LocalDateTime;
 
 public class TicketTagShowDTO {
+
+    private Integer tagID;
     private String tagName;
     private String description;
     private Integer departmentID;
@@ -13,13 +15,22 @@ public class TicketTagShowDTO {
     public TicketTagShowDTO() {
     }
 
-    public TicketTagShowDTO(String tagName, String description, Integer departmentID, String departmentName, LocalDateTime createdDate, String createdByUsername) {
+    public TicketTagShowDTO(Integer tagID, String tagName, String description, Integer departmentID, String departmentName, LocalDateTime createdDate, String createdByUsername) {
+        this.tagID = tagID;
         this.tagName = tagName;
         this.description = description;
         this.departmentID = departmentID;
         this.departmentName = departmentName;
         this.createdDate = createdDate;
         this.createdByUsername = createdByUsername;
+    }
+
+    public Integer getTagID() {
+        return tagID;
+    }
+
+    public void setTagID(Integer tagID) {
+        this.tagID = tagID;
     }
 
     public String getTagName() {

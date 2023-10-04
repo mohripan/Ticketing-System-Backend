@@ -242,4 +242,67 @@ public class TicketService {
         return query.getResultList();
     }
 
+    public Long getTicketsCountByTimeframe(LocalDateTime start, LocalDateTime end) {
+        return ticketRepository.countTicketsByTimeframe(start, end);
+    }
+
+    public Object[] getResponseTimeMetrics(LocalDateTime start, LocalDateTime end) {
+        return ticketRepository.findResponseTimeMetrics(start, end);
+    }
+
+    public Long getTicketsCountByDepartmentAndTimeframe(Integer departmentID, LocalDateTime start, LocalDateTime end) {
+        return ticketRepository.countTicketsByDepartmentAndTimeframe(departmentID, start, end);
+    }
+
+    public List<Object[]> getTicketsBySeverityAndDepartment(Integer departmentID, LocalDateTime start, LocalDateTime end) {
+        return ticketRepository.countTicketsBySeverityAndDepartment(departmentID, start, end);
+    }
+
+    public List<Object[]> getDailyTicketTrafficByDepartment(Integer departmentID, LocalDateTime start, LocalDateTime end) {
+        return ticketRepository.dailyTicketTrafficByDepartment(departmentID, start, end);
+    }
+
+    public Long countTicketsByUserAndTimeframe(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.countTicketsByUserAndTimeframe(userID, startDate, endDate);
+    }
+
+    public Object[] findUserResponseTimeMetrics(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findUserResponseTimeMetrics(userID, startDate, endDate);
+    }
+
+    public Object[] countUserResponseTimeMetrics(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.countUserResponseTimeMetrics(userID, startDate, endDate);
+    }
+
+    public List<Object[]> findDailyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findDailyResponseTimeMetricsForUser(userID, startDate, endDate);
+    }
+
+    public List<Object[]> findWeeklyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findWeeklyResponseTimeMetricsForUser(userID, startDate, endDate);
+    }
+
+    public List<Object[]> findMonthlyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findMonthlyResponseTimeMetricsForUser(userID, startDate, endDate);
+    }
+
+    public List<Object[]> averageDailyResponseTimeByDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.averageDailyResponseTimeByDepartment(departmentID, startDate, endDate);
+    }
+
+    public List<Object[]> findResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+    }
+
+    public List<Object[]> findDailyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findDailyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+    }
+
+    public List<Object[]> findWeeklyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findWeeklyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+    }
+
+    public List<Object[]> findMonthlyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+        return ticketRepository.findMonthlyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+    }
 }

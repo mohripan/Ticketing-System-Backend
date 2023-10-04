@@ -3,6 +3,7 @@ package com.example.TicketingSystemBackend.model;
 import com.example.TicketingSystemBackend.dto.CreateTicketDTO;
 import com.example.TicketingSystemBackend.dto.TicketDTO;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -52,20 +53,25 @@ public class Ticket {
     @JsonBackReference(value = "ticket-customer")
     private Customer customer;
 
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "ticket_reply-ticket")
+    private List<TicketReply> ticketReplies = new ArrayList<>();
+
     public Ticket() {
     }
 
-    public Ticket(Integer ticketID, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachment, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity, Customer customer) {
+    public Ticket(Integer ticketID, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachments, String ticketContent, String ticketStatus, User assignedTo, TicketTag ticketTag, TicketSeverity ticketSeverity, Customer customer, List<TicketReply> ticketReplies) {
         this.ticketID = ticketID;
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
-        this.attachments = attachment;
+        this.attachments = attachments;
         this.ticketContent = ticketContent;
         this.ticketStatus = ticketStatus;
         this.assignedTo = assignedTo;
         this.ticketTag = ticketTag;
         this.ticketSeverity = ticketSeverity;
         this.customer = customer;
+        this.ticketReplies = ticketReplies;
     }
 
     public Integer getTicketID() {
@@ -148,8 +154,17 @@ public class Ticket {
         this.customer = customer;
     }
 
+    public List<TicketReply> getTicketReplies() {
+        return ticketReplies;
+    }
+
+    public void setTicketReplies(List<TicketReply> ticketReplies) {
+        this.ticketReplies = ticketReplies;
+    }
+
     public TicketDTO toDTO() {
         TicketDTO dto = new TicketDTO();
+        dto.setUseID(this.assignedTo != null ? this.assignedTo.getUserID() : null);
         dto.setUserName(this.assignedTo != null ? this.assignedTo.getUserName() : null);
         dto.setTicketNumber(this.getTicketNumber());
         dto.setCreatedDate(this.getCreatedDate());

@@ -136,4 +136,116 @@ public class TicketController {
         Ticket updatedTicket = ticketService.assignTicketToUser(ticketId, assignedTo);
         return ResponseEntity.ok(updatedTicket);
     }
+
+    @PreAuthorize("hasAuthority('COUNT_TICKETS')")
+    @GetMapping("/countTickets")
+    public ResponseEntity<Long> getTicketCount(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        Long count = ticketService.getTicketsCountByTimeframe(start, end);
+        return ResponseEntity.ok(count);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/responseTimeMetrics")
+    public ResponseEntity<Object[]> getResponseTimeMetrics(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        Object[] metrics = ticketService.getResponseTimeMetrics(start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/countTicketsByDepartment/{departmentID}")
+    public ResponseEntity<Long> getTicketsCountByDepartment(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        Long count = ticketService.getTicketsCountByDepartmentAndTimeframe(departmentID, start, end);
+        return ResponseEntity.ok(count);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/countTicketsByUser/{userID}")
+    public ResponseEntity<Long> getTicketsByUserTimeframe(@PathVariable Integer userID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        Long count = ticketService.countTicketsByUserAndTimeframe(userID, start, end);
+        return ResponseEntity.ok(count);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/userResponse/{userID}")
+    public ResponseEntity<Object[]> findUserResponseTimeMetrics(@PathVariable Integer userID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        Object[] metrics = ticketService.findUserResponseTimeMetrics(userID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/countUserResponse/{userID}")
+    public ResponseEntity<Object[]> countUserResponseTimeMetrics(@PathVariable Integer userID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        Object[] metrics = ticketService.countUserResponseTimeMetrics(userID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/dailyUserResponse/{userID}")
+    public ResponseEntity<List<Object[]>> findDailyResponseTimeMetricsForUser(@PathVariable Integer userID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findDailyResponseTimeMetricsForUser(userID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/weeklyUserResponse/{userID}")
+    public ResponseEntity<List<Object[]>> findWeeklyResponseTimeMetricsForUser(@PathVariable Integer userID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findWeeklyResponseTimeMetricsForUser(userID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/monthlyUserResponse/{userID}")
+    public ResponseEntity<List<Object[]>> findMonthlyResponseTimeMetricsForUser(@PathVariable Integer userID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findMonthlyResponseTimeMetricsForUser(userID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/dailyResponseDepartment/{departmentID}")
+    public ResponseEntity<List<Object[]>> averageDailyResponseTimeByDepartment(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.averageDailyResponseTimeByDepartment(departmentID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/responsePerUserDepartment/{departmentID}")
+    public ResponseEntity<List<Object[]>> findResponseTimeMetricsPerUserInDepartment(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findResponseTimeMetricsPerUserInDepartment(departmentID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/dailyResponsePerUserDepartment/{departmentID}")
+    public ResponseEntity<List<Object[]>> findDailyResponseTimeMetricsPerUserInDepartment(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findDailyResponseTimeMetricsPerUserInDepartment(departmentID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/weeklyResponsePerUserDepartment/{departmentID}")
+    public ResponseEntity<List<Object[]>> findWeeklyResponseTimeMetricsPerUserInDepartment(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findWeeklyResponseTimeMetricsPerUserInDepartment(departmentID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_METRICS')")
+    @GetMapping("/monthlyResponsePerUserDepartment/{departmentID}")
+    public ResponseEntity<List<Object[]>> findMonthlyResponseTimeMetricsPerUserInDepartment(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> metrics = ticketService.findMonthlyResponseTimeMetricsPerUserInDepartment(departmentID, start, end);
+        return ResponseEntity.ok(metrics);
+    }
+
+    @PreAuthorize("hasAuthority('GET_SEVERITY_DISTRIBUTION')")
+    @GetMapping("/ticketsBySeverity/{departmentID}")
+    public ResponseEntity<List<Object[]>> getTicketsBySeverity(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> distribution = ticketService.getTicketsBySeverityAndDepartment(departmentID, start, end);
+        return ResponseEntity.ok(distribution);
+    }
+
+    @PreAuthorize("hasAuthority('GET_DAILY_TRAFFIC')")
+    @GetMapping("/dailyTrafficByDepartment/{departmentID}")
+    public ResponseEntity<List<Object[]>> getDailyTicketTraffic(@PathVariable Integer departmentID, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        List<Object[]> traffic = ticketService.getDailyTicketTrafficByDepartment(departmentID, start, end);
+        return ResponseEntity.ok(traffic);
+    }
 }

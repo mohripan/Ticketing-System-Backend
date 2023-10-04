@@ -111,7 +111,6 @@ public class TicketTag {
 
     public TicketTagDTO toDTO() {
         TicketTagDTO dto = new TicketTagDTO();
-        dto.setTicketTagID(this.getTicketTagID());
         dto.setTagName(this.getTagName());
         dto.setDescription(this.getDescription());
         dto.setCreatedDate(this.getCreatedDate());
@@ -122,6 +121,7 @@ public class TicketTag {
 
     public TicketTagShowDTO showToDTO() {
         TicketTagShowDTO dto = new TicketTagShowDTO();
+        dto.setTagID(this.getTicketTagID());
         dto.setTagName(this.getTagName());
         dto.setDescription(this.getDescription());
         dto.setDepartmentID(this.getDepartment().getDepartmentID());

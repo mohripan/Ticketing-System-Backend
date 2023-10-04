@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TicketDTO {
+    private Integer useID;
     private String userName;
     private String ticketNumber;
     private LocalDateTime createdDate;
@@ -17,13 +18,22 @@ public class TicketDTO {
     public TicketDTO() {
     }
 
-    public TicketDTO(String userName, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachments, String ticketContent, String ticketStatus) {
+    public TicketDTO(Integer useID, String userName, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachments, String ticketContent, String ticketStatus) {
+        this.useID = useID;
         this.userName = userName;
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
         this.attachments = attachments;
         this.ticketContent = ticketContent;
         this.ticketStatus = ticketStatus;
+    }
+
+    public Integer getUseID() {
+        return useID;
+    }
+
+    public void setUseID(Integer useID) {
+        this.useID = useID;
     }
 
     public String getUserName() {
