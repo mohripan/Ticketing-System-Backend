@@ -46,8 +46,8 @@ public class DepartmentController {
     }
 
     @PreAuthorize("hasAuthority('UPDATE_DEPARTMENT')")
-    @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Integer id, Department department) {
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Department> updateDepartment(@PathVariable Integer id, @RequestBody Department department) {
         Department updatedDepartment = departmentService.updateDepartment(id, department);
         if(updatedDepartment != null) {
             return ResponseEntity.ok(updatedDepartment);
@@ -57,7 +57,7 @@ public class DepartmentController {
     }
 
     @PreAuthorize("hasAuthority('DELETE_DEPARTMENT')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDepartment(@PathVariable Integer id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();

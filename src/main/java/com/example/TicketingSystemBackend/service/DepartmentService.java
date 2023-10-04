@@ -65,12 +65,12 @@ public class DepartmentService {
     }
 
     public Department updateDepartment(Integer id, Department department) {
-        if(departmentRepository.existsById(id)) {
-            department.setDepartmentID(id);
-            return departmentRepository.save(department);
+        if(!departmentRepository.existsById(id)) {
+            throw new RuntimeException("Department ID "+ id +" not found.");
         }
 
-        return null;
+        department.setDepartmentID(id);
+        return departmentRepository.save(department);
     }
 
     public void deleteDepartment(Integer id) {

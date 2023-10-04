@@ -1,7 +1,6 @@
 package com.example.TicketingSystemBackend.controller;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.example.TicketingSystemBackend.dto.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
 
     @ExceptionHandler(StackOverflowError.class)
     public ResponseEntity<String> handleStackOverflowError() {
