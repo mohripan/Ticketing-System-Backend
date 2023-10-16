@@ -52,7 +52,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/api/replies/websocket")
                 .setAllowedOrigins("http://localhost:5173")
                 .setHandshakeHandler(handshakeHandler())
-                .addInterceptors(webSocketAuthInterceptor)
                 .withSockJS();
     }
 

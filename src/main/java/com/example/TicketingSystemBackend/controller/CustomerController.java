@@ -1,6 +1,7 @@
 package com.example.TicketingSystemBackend.controller;
 
 import com.example.TicketingSystemBackend.dto.CreateTicketDTO;
+import com.example.TicketingSystemBackend.dto.TicketCustomerDTO;
 import com.example.TicketingSystemBackend.model.Customer;
 import com.example.TicketingSystemBackend.model.Ticket;
 import com.example.TicketingSystemBackend.service.CustomerService;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -33,7 +35,7 @@ public class CustomerController {
 
     @GetMapping("/check-existence")
     public ResponseEntity<Customer> checkExistingCustomer(@RequestParam String phoneNumber, @RequestParam String email, @RequestParam String name) {
-        Optional<Customer> customer = customerService.findCustomerByPhoneNumberAndEmail(phoneNumber, email, name);
+        Optional<Customer> customer = customerService.findByPhoneNumberAndEmailAndName(phoneNumber, email, name);
 
         if (customer.isPresent()) {
             return new ResponseEntity<>(customer.get(), HttpStatus.OK);
@@ -46,5 +48,11 @@ public class CustomerController {
     public ResponseEntity<Ticket> createTicket(@RequestBody CreateTicketDTO ticketDTO) {
         Ticket createdTicket = ticketService.createTicket(ticketDTO);
         return new ResponseEntity<>(createdTicket, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/ticket-customer/{customerId}")
+    public ResponseEntity<List<TicketCustomerDTO>> getTicketsByCustomerID(@PathVariable Integer customerId) {
+        List<TicketCustomerDTO> ticketDTOs = customerService.getTicketsByCustomerID(customerId);
+        return ResponseEntity.ok(ticketDTOs);
     }
 }

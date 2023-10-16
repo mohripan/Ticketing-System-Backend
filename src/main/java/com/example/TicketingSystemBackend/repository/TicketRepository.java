@@ -17,6 +17,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     List<Ticket> findByAssignedToAndTicketTag_Department_DepartmentID(User assignedTo, Integer departmentID);
     List<Ticket> findAll();
 
+    List<Ticket> findByCustomer_CustomerID(Integer customerID);
+
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdDate BETWEEN :startDate AND :endDate")
     Long countTicketsByTimeframe(LocalDateTime startDate, LocalDateTime endDate);
 
