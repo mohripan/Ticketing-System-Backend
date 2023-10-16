@@ -1,6 +1,7 @@
 package com.example.TicketingSystemBackend.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -72,20 +73,30 @@ public class TicketReply {
         this.replyContent = replyContent;
     }
 
-    public User getUser() {
-        return user;
-    }
-
     public void setUser(User user) {
         this.user = user;
     }
 
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    @JsonIgnore // Ignore during serialization
+    public User getUser() {
+        return user;
+    }
+
+    @JsonIgnore // Ignore during serialization
     public Customer getCustomer() {
         return customer;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public Integer getUserId() {
+        return user != null ? user.getUserID() : null;
+    }
+
+    public Integer getCustomerId() {
+        return customer != null ? customer.getCustomerID() : null;
     }
 
     public LocalDateTime getReplyDate() {
