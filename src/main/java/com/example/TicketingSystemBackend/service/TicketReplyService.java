@@ -24,6 +24,10 @@ public class TicketReplyService {
         return ticketReplyRepository.findByTicket(ticket);
     }
 
+    public List<TicketReply> getRepliesByTicketDateDesc(Ticket ticket) {
+        return ticketReplyRepository.findByTicketOrderByReplyDateDesc(ticket);
+    }
+
     public TicketReply saveReply(TicketReply ticketReply) {
         return ticketReplyRepository.save(ticketReply);
     }

@@ -164,8 +164,11 @@ public class Ticket {
 
     public TicketDTO toDTO() {
         TicketDTO dto = new TicketDTO();
-        dto.setUseID(this.assignedTo != null ? this.assignedTo.getUserID() : null);
+        dto.setTicketID(this.getTicketID());
+        dto.setUserID(this.assignedTo != null ? this.assignedTo.getUserID() : null);
         dto.setUserName(this.assignedTo != null ? this.assignedTo.getUserName() : null);
+        dto.setCustomerID(this.customer != null ? this.customer.getCustomerID() : null);
+        dto.setCustomerName(this.customer != null ? this.customer.getName() : null);
         dto.setTicketNumber(this.getTicketNumber());
         dto.setCreatedDate(this.getCreatedDate());
         dto.setAttachments(this.getAttachments());

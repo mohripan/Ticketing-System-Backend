@@ -7,8 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TicketDTO {
-    private Integer useID;
+
+    private Integer ticketID;
+    private Integer userID;
     private String userName;
+    private Integer customerID;
+    private String customerName;
     private String ticketNumber;
     private LocalDateTime createdDate;
     private List<Attachment> attachments = new ArrayList<>();
@@ -18,9 +22,12 @@ public class TicketDTO {
     public TicketDTO() {
     }
 
-    public TicketDTO(Integer useID, String userName, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachments, String ticketContent, String ticketStatus) {
-        this.useID = useID;
+    public TicketDTO(Integer ticketID, Integer userID, String userName, Integer customerID, String customerName, String ticketNumber, LocalDateTime createdDate, List<Attachment> attachments, String ticketContent, String ticketStatus) {
+        this.ticketID = ticketID;
+        this.userID = userID;
         this.userName = userName;
+        this.customerID = customerID;
+        this.customerName = customerName;
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
         this.attachments = attachments;
@@ -28,12 +35,36 @@ public class TicketDTO {
         this.ticketStatus = ticketStatus;
     }
 
-    public Integer getUseID() {
-        return useID;
+    public Integer getTicketID() {
+        return ticketID;
     }
 
-    public void setUseID(Integer useID) {
-        this.useID = useID;
+    public void setTicketID(Integer ticketID) {
+        this.ticketID = ticketID;
+    }
+
+    public Integer getCustomerID() {
+        return customerID;
+    }
+
+    public void setCustomerID(Integer customerID) {
+        this.customerID = customerID;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public Integer getUserID() {
+        return userID;
+    }
+
+    public void setUserID(Integer userID) {
+        this.userID = userID;
     }
 
     public String getUserName() {

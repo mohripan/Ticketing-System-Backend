@@ -6,6 +6,7 @@ import com.example.TicketingSystemBackend.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,19 +36,30 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/users/login").permitAll()
-                        .requestMatchers("/api/tickets/manager/filterTickets/**").permitAll()
-                        .requestMatchers("/api/customers/**").permitAll()
-                        .requestMatchers("/api/token/**").permitAll()
-                        .requestMatchers("/api/attachments/**").permitAll()
-                        .requestMatchers("/api/users/logout").permitAll()
+        http
+                .headers(headers ->
+                        headers.frameOptions(frame -> frame.disable())
+                                .contentSecurityPolicy(csp ->
+                                        csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';")
+                                )
+                )
+                .csrf(csrf -> csrf.disable())
+                .authorizeRequests(authz -> authz
+                        .requestMatchers(
+                                "/api/users/login",
+                                "/api/tickets/manager/filterTickets/**",
+                                "/api/customers/**",
+                                "/api/token/**",
+                                "/api/replies/websocket/**",
+                                "/api/replies/customer/**",
+                                "/api/replies/history/**",
+                                "/api/attachments/**",
+                                "/api/users/logout"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

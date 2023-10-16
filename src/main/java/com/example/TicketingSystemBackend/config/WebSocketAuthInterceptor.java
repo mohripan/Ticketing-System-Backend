@@ -37,37 +37,47 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        String token = extractToken(request);
-        if(token == null) {
+        String tokenOrEmail = extractTokenOrEmail(request);
+
+        if(tokenOrEmail == null) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return false;
         }
 
-        String email = jwtUtil.extractUsername(token);
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+        if (jwtUtil.isToken(tokenOrEmail)) {
 
-        boolean hasManagerRole = userDetails.getAuthorities().stream()
-                .anyMatch(auth -> "ROLE_MANAGER".equals(auth.getAuthority()));
+            String email = jwtUtil.extractUsername(tokenOrEmail);
 
-        if (jwtUtil.validateToken(token, userDetails) && hasManagerRole) {
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities()));
-            return true;
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+            boolean hasStaffRole = userDetails.getAuthorities().stream()
+                    .anyMatch(auth -> "ROLE_STAFF".equals(auth.getAuthority()));
+
+            if (jwtUtil.validateToken(tokenOrEmail, userDetails) && hasStaffRole) {
+
+                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities()));
+                return true;
+            }
         }
-
-        response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        return false;
+        return true;
     }
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
     }
 
-    private String extractToken(ServerHttpRequest request) {
+    private String extractTokenOrEmail(ServerHttpRequest request) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUri(request.getURI());
         MultiValueMap<String, String> queryParams = uriComponentsBuilder.build().getQueryParams();
+
+        // Extract token or email parameter from the request
         List<String> tokenList = queryParams.get("token");
+        List<String> emailList = queryParams.get("email");
+
         if (tokenList != null && !tokenList.isEmpty()) {
             return tokenList.get(0);
+        } else if (emailList != null && !emailList.isEmpty()) {
+            return emailList.get(0);
         }
         return null;
     }

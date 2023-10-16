@@ -60,6 +60,15 @@ public class JwtUtil {
         return builder.sign(Algorithm.HMAC256(SECRET_KEY));
     }
 
+    public boolean isToken(String tokenOrEmail) {
+        try {
+            decodeToken(tokenOrEmail);  // Attempt to decode the token.
+            return true;  // Success, it is a token.
+        } catch (Exception e) {
+            return false;  // An error occurred, so it's not a token.
+        }
+    }
+
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
             DecodedJWT jwt = decodeToken(token);

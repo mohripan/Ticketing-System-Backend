@@ -3,6 +3,7 @@ package com.example.TicketingSystemBackend.controller;
 import com.example.TicketingSystemBackend.model.Ticket;
 import com.example.TicketingSystemBackend.model.TicketReply;
 import com.example.TicketingSystemBackend.model.User;
+import com.example.TicketingSystemBackend.repository.CustomerRepository;
 import com.example.TicketingSystemBackend.repository.TicketRepository;
 import com.example.TicketingSystemBackend.security.util.JwtUtil;
 import com.example.TicketingSystemBackend.service.EmailService;
@@ -38,6 +39,9 @@ public class TicketReplyController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     @PreAuthorize("hasAuthority('REPLY_TICKETS')")
     @PostMapping("/user/{ticketId}")
     public ResponseEntity<?> postReply(@PathVariable int ticketId,
@@ -67,6 +71,7 @@ public class TicketReplyController {
 
         newReply.setTicket(ticketOpt.get());
         newReply.setUser(authenticatedUser);
+        newReply.setCustomer(null);
         TicketReply savedReply = ticketReplyService.saveReply(newReply);
 
         // Send email notification to the customer
@@ -79,5 +84,17 @@ public class TicketReplyController {
         emailService.sendSimpleMessage(customerEmail, subject, message);
 
         return ResponseEntity.ok(savedReply);
+    }
+
+    @GetMapping("/history/{ticketId}")
+    public ResponseEntity<List<TicketReply>> getTicketReplies(
+            @PathVariable Integer ticketId) {
+        Optional<Ticket> ticketOpt = ticketRepository.findById(ticketId);
+        if (!ticketOpt.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        List<TicketReply> ticketReplies =
+                ticketReplyService.getRepliesByTicket(ticketOpt.get());
+        return new ResponseEntity<>(ticketReplies, HttpStatus.OK);
     }
 }

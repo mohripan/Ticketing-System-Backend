@@ -28,17 +28,23 @@ public class TicketReply {
     @JsonBackReference(value = "ticket_reply-user")
     private User user;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id")
+    @JsonBackReference(value = "ticket_reply-customer")
+    private Customer customer;
+
     @Column(name = "reply_date")
     private LocalDateTime replyDate;
 
     public TicketReply() {
     }
 
-    public TicketReply(int replyID, Ticket ticket, String replyContent, User user, LocalDateTime replyDate) {
+    public TicketReply(int replyID, Ticket ticket, String replyContent, User user, Customer customer, LocalDateTime replyDate) {
         this.replyID = replyID;
         this.ticket = ticket;
         this.replyContent = replyContent;
         this.user = user;
+        this.customer = customer;
         this.replyDate = replyDate;
     }
 
@@ -72,6 +78,14 @@ public class TicketReply {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public LocalDateTime getReplyDate() {
