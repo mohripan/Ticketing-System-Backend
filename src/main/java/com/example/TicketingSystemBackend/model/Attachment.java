@@ -18,6 +18,9 @@ public class Attachment {
     @JsonBackReference(value = "attachment-ticket")
     private Ticket ticket;
 
+    @Column(name = "cloudinary_public_id")
+    private String cloudinaryPublicId;
+
     @Column(name = "attachment_path")
     private String attachmentPath;
 
@@ -36,9 +39,10 @@ public class Attachment {
     public Attachment() {
     }
 
-    public Attachment(Integer attachmentID, Ticket ticket, String attachmentPath, String fileName, String fileType, Long fileSize, LocalDateTime uploadDate) {
+    public Attachment(Integer attachmentID, Ticket ticket, String cloudinaryPublicId, String attachmentPath, String fileName, String fileType, Long fileSize, LocalDateTime uploadDate) {
         this.attachmentID = attachmentID;
         this.ticket = ticket;
+        this.cloudinaryPublicId = cloudinaryPublicId;
         this.attachmentPath = attachmentPath;
         this.fileName = fileName;
         this.fileType = fileType;
@@ -52,6 +56,14 @@ public class Attachment {
 
     public void setAttachmentID(Integer attachmentID) {
         this.attachmentID = attachmentID;
+    }
+
+    public String getCloudinaryPublicId() {
+        return cloudinaryPublicId;
+    }
+
+    public void setCloudinaryPublicId(String cloudinaryPublicId) {
+        this.cloudinaryPublicId = cloudinaryPublicId;
     }
 
     public Ticket getTicket() {

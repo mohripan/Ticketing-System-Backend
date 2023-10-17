@@ -52,11 +52,12 @@ public class AttachmentController {
         }
     }
 
-    @GetMapping("/download/{filename}")
-    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
-        Resource file = attachmentService.load(filename);
+    @GetMapping("/download/{publicId}")
+    public ResponseEntity<Resource> getFile(@PathVariable String publicId) {
+        Resource file = attachmentService.load(publicId);
+        String filename = file.getDescription(); // Adjust as necessary to get the file's name
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(file);
     }
 

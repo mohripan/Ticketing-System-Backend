@@ -1,5 +1,7 @@
 package com.example.TicketingSystemBackend.config;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.TicketingSystemBackend.controller.GlobalExceptionHandler;
 import com.example.TicketingSystemBackend.dto.UserDTO;
 import com.example.TicketingSystemBackend.model.User;
@@ -7,6 +9,7 @@ import com.example.TicketingSystemBackend.repository.UserRepository;
 import com.example.TicketingSystemBackend.service.CustomUserDetailsService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
