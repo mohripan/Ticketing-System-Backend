@@ -18,8 +18,18 @@ import java.util.Optional;
 public class TicketService {
 
     private static final SecureRandom secureRandom = new SecureRandom();
+    private final TicketRepository ticketRepository;
+    private final DepartmentGraphRepository departmentGraphRepository;
+    private final UserGraphRepository userGraphRepository;
+    private final CountGraphRepository countGraphRepository;
+
     @Autowired
-    private TicketRepository ticketRepository;
+    public TicketService(TicketRepository ticketRepository, DepartmentGraphRepository departmentGraphRepository, UserGraphRepository userGraphRepository, CountGraphRepository countGraphRepository) {
+        this.ticketRepository = ticketRepository;
+        this.departmentGraphRepository = departmentGraphRepository;
+        this.userGraphRepository = userGraphRepository;
+        this.countGraphRepository = countGraphRepository;
+    }
 
     @Autowired
     private UserRepository userRepository;
@@ -242,67 +252,275 @@ public class TicketService {
         return query.getResultList();
     }
 
-    public Long getTicketsCountByTimeframe(LocalDateTime start, LocalDateTime end) {
-        return ticketRepository.countTicketsByTimeframe(start, end);
+    public Long countTickets(Optional<Integer> departmentIDOpt, Optional<Integer> userIDOpt, LocalDateTime startDate, LocalDateTime endDate, Optional<String> severityOpt) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("SELECT COUNT(t.ticket_id) FROM tickets t ");
+        sb.append("JOIN ticket_tags tt ON t.ticket_tag_id = tt.ticket_tag_id ");
+        sb.append("JOIN departments d ON tt.department_id = d.department_id ");
+        sb.append("JOIN users u ON t.assigned_to = u.user_id ");
+        if (severityOpt.isPresent()) {
+            sb.append("JOIN ticket_severities ts ON t.severity_id = ts.severity_id ");
+            sb.append("AND ts.severity_name = :severity_name ");
+        }
+        sb.append("WHERE t.created_date BETWEEN :start_date AND :end_date ");
+
+        if (departmentIDOpt.isPresent()) {
+            sb.append("AND d.department_id = :departmentID ");
+        }
+
+        if (userIDOpt.isPresent()) {
+            sb.append("AND u.user_id = :userID ");
+        }
+
+        return countGraphRepository.executeQuery(sb.toString(), departmentIDOpt, userIDOpt, startDate, endDate, severityOpt);
     }
 
-    public Object[] getResponseTimeMetrics(LocalDateTime start, LocalDateTime end) {
-        return ticketRepository.findResponseTimeMetrics(start, end);
+
+    public List<Object[]> getResponseTimeMetricsDepartment(Optional<String> granularityOpt, Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, Optional<String> severityOpt) {
+        StringBuilder sb = new StringBuilder();
+
+        String timeFunction = ""; // Default if granularity is not provided
+        if (granularityOpt.isPresent()) {
+            switch (granularityOpt.get()) {
+                case "daily":
+                    timeFunction = "DATE(t.created_date), ";
+                    break;
+                case "weekly":
+                    timeFunction = "WEEK(t.created_date), ";
+                    break;
+                case "monthly":
+                    timeFunction = "MONTH(t.created_date), ";
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid granularity");
+            }
+        }
+
+        sb.append("SELECT ");
+        sb.append(timeFunction);
+        sb.append("AVG(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("MIN(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("MAX(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("COUNT(tr.reply_id) ");
+        sb.append("FROM tickets t ");
+        sb.append("JOIN ticket_replies tr ON t.ticket_id = tr.ticket_id ");
+        sb.append("JOIN ticket_tags tt ON t.ticket_tag_id = tt.ticket_tag_id ");
+        sb.append("JOIN ticket_severities ttt ON t.severity_id = ttt.severity_id ");
+        sb.append("WHERE tt.department_id = :departmentID AND ");
+        sb.append("t.created_date BETWEEN :start_date AND :end_date ");
+
+        if(severityOpt.isPresent()) {
+            sb.append("AND ttt.severity_name = :severity_name ");
+        }
+
+        if (!timeFunction.isEmpty()) {
+            sb.append("GROUP BY ");
+            sb.append(timeFunction.substring(0, timeFunction.length() - 2));
+        }
+
+        return departmentGraphRepository.executeQuery(sb.toString(), departmentID, startDate, endDate, severityOpt);
     }
 
-    public Long getTicketsCountByDepartmentAndTimeframe(Integer departmentID, LocalDateTime start, LocalDateTime end) {
-        return ticketRepository.countTicketsByDepartmentAndTimeframe(departmentID, start, end);
+    public List<Object[]> getResponseTimeMetricsUser(Optional<String> granularityOpt, Integer userID, LocalDateTime startDate, LocalDateTime endDate, Optional<String> severityOpt) {
+        StringBuilder sb = new StringBuilder();
+
+        String timeFunction = ""; // Default if granularity is not provided
+        if (granularityOpt.isPresent()) {
+            switch (granularityOpt.get()) {
+                case "daily":
+                    timeFunction = "DATE(t.created_date), ";
+                    break;
+                case "weekly":
+                    timeFunction = "WEEK(t.created_date), ";
+                    break;
+                case "monthly":
+                    timeFunction = "MONTH(t.created_date), ";
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid granularity");
+            }
+        }
+
+        sb.append("SELECT u.user_id, u.user_name, ");
+        sb.append(timeFunction);
+        sb.append("AVG(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("MIN(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("MAX(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("COUNT(tr.reply_id) ");
+        sb.append("FROM tickets t ");
+        sb.append("JOIN ticket_replies tr ON t.ticket_id = tr.ticket_id ");
+        sb.append("JOIN users u ON tr.user_id = u.user_id ");
+        sb.append("JOIN ticket_severities ttt ON t.severity_id = ttt.severity_id ");
+        sb.append("WHERE u.user_id = :userID AND ");
+        sb.append("t.created_date BETWEEN :start_date AND :end_date ");
+
+        if(severityOpt.isPresent()) {
+            sb.append("AND ttt.severity_name = :severity_name ");
+        }
+
+        if (!timeFunction.isEmpty()) {
+            sb.append("GROUP BY u.user_id, ");
+            sb.append(timeFunction.substring(0, timeFunction.length() - 2));
+        }
+
+        return userGraphRepository.executeQuery(sb.toString(), userID, startDate, endDate, severityOpt);
     }
 
-    public List<Object[]> getTicketsBySeverityAndDepartment(Integer departmentID, LocalDateTime start, LocalDateTime end) {
-        return ticketRepository.countTicketsBySeverityAndDepartment(departmentID, start, end);
+
+    public List<Object[]> getResponseTimeMetricsDepartmentPerUser(Optional<String> granularityOpt, Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, Optional<String> severityOpt) {
+        StringBuilder sb = new StringBuilder();
+
+        String timeFunction = "";
+        if (granularityOpt.isPresent()) {
+            switch (granularityOpt.get()) {
+                case "daily":
+                    timeFunction = "DATE(t.created_date), ";
+                    break;
+                case "weekly":
+                    timeFunction = "WEEK(t.created_date), ";
+                    break;
+                case "monthly":
+                    timeFunction = "MONTH(t.created_date), ";
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid granularity");
+            }
+        }
+
+        sb.append("SELECT tr.user_id, u.user_name, ");
+        sb.append(timeFunction);
+        sb.append("AVG(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("MIN(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("MAX(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
+        sb.append("COUNT(tr.reply_id) ");
+        sb.append("FROM tickets t ");
+        sb.append("JOIN ticket_replies tr ON t.ticket_id = tr.ticket_id ");
+        sb.append("JOIN users u ON tr.user_id = u.user_id ");
+        sb.append("JOIN ticket_tags tt ON t.ticket_tag_id = tt.ticket_tag_id ");
+        sb.append("JOIN ticket_severities ttt ON t.severity_id = ttt.severity_id ");
+        sb.append("WHERE tt.department_id = :departmentID AND ");
+        sb.append("t.created_date BETWEEN :start_date AND :end_date ");
+
+        if(severityOpt.isPresent()) {
+            sb.append("AND ttt.severity_name = :severity_name ");
+        }
+
+        sb.append("GROUP BY tr.user_id");
+
+        if (!timeFunction.isEmpty()) {
+            sb.append(", ");
+            sb.append(timeFunction.substring(0, timeFunction.length() - 2));
+        }
+
+        return departmentGraphRepository.executeQuery(sb.toString(), departmentID, startDate, endDate, severityOpt);
     }
 
-    public List<Object[]> getDailyTicketTrafficByDepartment(Integer departmentID, LocalDateTime start, LocalDateTime end) {
-        return ticketRepository.dailyTicketTrafficByDepartment(departmentID, start, end);
-    }
-
-    public Long countTicketsByUserAndTimeframe(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.countTicketsByUserAndTimeframe(userID, startDate, endDate);
-    }
-
-    public Object[] findUserResponseTimeMetrics(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findUserResponseTimeMetrics(userID, startDate, endDate);
-    }
-
-    public Object[] countUserResponseTimeMetrics(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.countUserResponseTimeMetrics(userID, startDate, endDate);
-    }
-
-    public List<Object[]> findDailyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findDailyResponseTimeMetricsForUser(userID, startDate, endDate);
-    }
-
-    public List<Object[]> findWeeklyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findWeeklyResponseTimeMetricsForUser(userID, startDate, endDate);
-    }
-
-    public List<Object[]> findMonthlyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findMonthlyResponseTimeMetricsForUser(userID, startDate, endDate);
-    }
-
-    public List<Object[]> averageDailyResponseTimeByDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.averageDailyResponseTimeByDepartment(departmentID, startDate, endDate);
-    }
-
-    public List<Object[]> findResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
-    }
-
-    public List<Object[]> findDailyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findDailyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
-    }
-
-    public List<Object[]> findWeeklyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findWeeklyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
-    }
-
-    public List<Object[]> findMonthlyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
-        return ticketRepository.findMonthlyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
-    }
+//    public Long getTicketsCountByTimeframe(LocalDateTime start, LocalDateTime end) {
+//        return ticketRepository.countTicketsByTimeframe(start, end);
+//    }
+//
+//    public Object[] getResponseTimeMetrics(LocalDateTime start, LocalDateTime end) {
+//        return ticketRepository.findResponseTimeMetrics(start, end);
+//    }
+//
+//    public Long getTicketsCountByDepartmentAndTimeframe(Integer departmentID, LocalDateTime start, LocalDateTime end) {
+//        return ticketRepository.countTicketsByDepartmentAndTimeframe(departmentID, start, end);
+//    }
+//
+//    public List<Object[]> getTicketsBySeverityAndDepartment(Integer departmentID, LocalDateTime start, LocalDateTime end) {
+//        return ticketRepository.countTicketsBySeverityAndDepartment(departmentID, start, end);
+//    }
+//
+//    public List<Object[]> getDailyTicketTrafficByDepartment(Integer departmentID, LocalDateTime start, LocalDateTime end) {
+//        return ticketRepository.dailyTicketTrafficByDepartment(departmentID, start, end);
+//    }
+//
+//    public Long countTicketsByUserAndTimeframe(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.countTicketsByUserAndTimeframe(userID, startDate, endDate);
+//    }
+//
+//    public Object[] findUserResponseTimeMetrics(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findUserResponseTimeMetrics(userID, startDate, endDate);
+//    }
+//
+//    public Object[] countUserResponseTimeMetrics(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.countUserResponseTimeMetrics(userID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findDailyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findDailyResponseTimeMetricsForUser(userID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findWeeklyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findWeeklyResponseTimeMetricsForUser(userID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findMonthlyResponseTimeMetricsForUser(Integer userID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findMonthlyResponseTimeMetricsForUser(userID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> averageDailyResponseTimeByDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.averageDailyResponseTimeByDepartment(departmentID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findDailyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findDailyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findWeeklyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findWeeklyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+//    }
+//
+//    public List<Object[]> findMonthlyResponseTimeMetricsPerUserInDepartment(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate) {
+//        return ticketRepository.findMonthlyResponseTimeMetricsPerUserInDepartment(departmentID, startDate, endDate);
+//    }
+//
+//    public Long countTicketsByTimeframeAndSeverity(LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.countTicketsByTimeframeAndSeverity(startDate, endDate, severity);
+//    }
+//
+//    public Long countTicketsByDepartmentTimeframeAndSeverity(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.countTicketsByDepartmentTimeframeAndSeverity(departmentID, startDate, endDate, severity);
+//    }
+//
+//    public Long countTicketsByUserTimeframeAndSeverity(Integer userID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.countTicketsByUserTimeframeAndSeverity(userID, startDate, endDate, severity);
+//    }
+//
+//    public Object[] findUserResponseTimeMetricsBySeverity(Integer userID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findUserResponseTimeMetricsBySeverity(userID, startDate, endDate, severity);
+//    }
+//
+//    public Object[] findResponseTimeMetricsPerDepartmentBySeverity(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findResponseTimeMetricsPerDepartmentBySeverity(departmentID, startDate, endDate, severity);
+//    }
+//
+//    public List<Object[]> findDailyResponseTimeMetricsForUserBySeverity(Integer userID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findDailyResponseTimeMetricsForUserBySeverity(userID, startDate, endDate, severity);
+//    }
+//
+//    public List<Object[]> findWeeklyResponseTimeMetricsForUserBySeverity(Integer userID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findWeeklyResponseTimeMetricsForUserBySeverity(userID, startDate, endDate, severity);
+//    }
+//
+//    public List<Object[]> findMonthlyResponseTimeMetricsForUserBySeverity(Integer userID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findMonthlyResponseTimeMetricsForUserBySeverity(userID, startDate, endDate, severity);
+//    }
+//
+//    public List<Object[]> findDailyResponseTimeMetricsPerDepartmentBySeverity(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findDailyResponseTimeMetricsPerDepartmentBySeverity(departmentID, startDate, endDate, severity);
+//    }
+//
+//    public List<Object[]> findWeeklyResponseTimeMetricsPerDepartmentBySeverity(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findWeeklyResponseTimeMetricsPerDepartmentBySeverity(departmentID, startDate, endDate, severity);
+//    }
+//
+//    public List<Object[]> findMonthlyResponseTimeMetricsPerDepartmentBySeverity(Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, String severity) {
+//        return ticketRepository.findMonthlyResponseTimeMetricsPerDepartmentBySeverity(departmentID, startDate, endDate, severity);
+//    }
 }

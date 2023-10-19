@@ -2,6 +2,7 @@ package com.example.TicketingSystemBackend.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.TicketingSystemBackend.exception.UnsupportedFileTypeException;
 import com.example.TicketingSystemBackend.model.Attachment;
 import com.example.TicketingSystemBackend.model.Ticket;
 import com.example.TicketingSystemBackend.repository.AttachmentRepository;
@@ -68,14 +69,16 @@ public class AttachmentService {
         }
     }
 
-    private String determineResourceType(String contentType) {
-        // Modify this list based on the file types you expect
-        List<String> imageTypes = Arrays.asList("image/jpeg", "image/jpg", "image/png", "image/gif", "image/bmp", "image/webp");
+    private String determineResourceType(String contentType) throws UnsupportedFileTypeException {
+        List<String> imageTypes = Arrays.asList("image/jpeg", "image/jpg");
+        List<String> documentTypes = Arrays.asList("application/pdf", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
         if (imageTypes.contains(contentType)) {
             return "image";
+        } else if (documentTypes.contains(contentType)) {
+            return "document";
         } else {
-            return "raw"; // default to raw for other file types
+            throw new UnsupportedFileTypeException("File type is not supported");
         }
     }
 
