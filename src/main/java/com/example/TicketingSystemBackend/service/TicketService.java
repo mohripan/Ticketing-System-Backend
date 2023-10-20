@@ -284,13 +284,13 @@ public class TicketService {
         if (granularityOpt.isPresent()) {
             switch (granularityOpt.get()) {
                 case "daily":
-                    timeFunction = "DATE(t.created_date), ";
+                    timeFunction = "DATE(sub.created_date), ";
                     break;
                 case "weekly":
-                    timeFunction = "WEEK(t.created_date), ";
+                    timeFunction = "WEEK(sub.created_date), ";
                     break;
                 case "monthly":
-                    timeFunction = "MONTH(t.created_date), ";
+                    timeFunction = "MONTH(sub.created_date), ";
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid granularity");
@@ -299,20 +299,23 @@ public class TicketService {
 
         sb.append("SELECT ");
         sb.append(timeFunction);
-        sb.append("AVG(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("MIN(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("MAX(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("COUNT(tr.reply_id) ");
+        sb.append("AVG(sub.reply_diff), ");
+        sb.append("MIN(sub.reply_diff), ");
+        sb.append("MAX(sub.reply_diff), ");
+        sb.append("COUNT(sub.reply_id) ");
+        sb.append("FROM (");
+        sb.append("SELECT tr.reply_id, tr.reply_date, t.created_date, ");
+        sb.append("IFNULL(TIMESTAMPDIFF(SECOND, COALESCE(LAG(tr.reply_date) OVER (PARTITION BY t.ticket_id ORDER BY tr.reply_date), t.created_date), tr.reply_date), 0) AS reply_diff ");
         sb.append("FROM tickets t ");
         sb.append("JOIN ticket_replies tr ON t.ticket_id = tr.ticket_id ");
         sb.append("JOIN ticket_tags tt ON t.ticket_tag_id = tt.ticket_tag_id ");
         sb.append("JOIN ticket_severities ttt ON t.severity_id = ttt.severity_id ");
         sb.append("WHERE tt.department_id = :departmentID AND ");
         sb.append("t.created_date BETWEEN :start_date AND :end_date ");
-
         if(severityOpt.isPresent()) {
             sb.append("AND ttt.severity_name = :severity_name ");
         }
+        sb.append(") AS sub ");
 
         if (!timeFunction.isEmpty()) {
             sb.append("GROUP BY ");
@@ -325,44 +328,30 @@ public class TicketService {
     public List<Object[]> getResponseTimeMetricsUser(Optional<String> granularityOpt, Integer userID, LocalDateTime startDate, LocalDateTime endDate, Optional<String> severityOpt) {
         StringBuilder sb = new StringBuilder();
 
-        String timeFunction = ""; // Default if granularity is not provided
-        if (granularityOpt.isPresent()) {
-            switch (granularityOpt.get()) {
-                case "daily":
-                    timeFunction = "DATE(t.created_date), ";
-                    break;
-                case "weekly":
-                    timeFunction = "WEEK(t.created_date), ";
-                    break;
-                case "monthly":
-                    timeFunction = "MONTH(t.created_date), ";
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid granularity");
-            }
-        }
+        String timeFunction = determineTimeFunction(granularityOpt); // Extracted to a helper function for clarity and reuse
 
-        sb.append("SELECT u.user_id, u.user_name, ");
+        sb.append("SELECT sub.user_id, sub.user_name, ");
         sb.append(timeFunction);
-        sb.append("AVG(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("MIN(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("MAX(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("COUNT(tr.reply_id) ");
+        sb.append("AVG(sub.reply_diff), ");
+        sb.append("MIN(sub.reply_diff), ");
+        sb.append("MAX(sub.reply_diff), ");
+        sb.append("COUNT(sub.reply_id) ");
+        sb.append("FROM (");
+        sb.append("SELECT tr.reply_id, tr.reply_date, t.created_date, u.user_id, u.user_name, ");
+        sb.append("IFNULL(TIMESTAMPDIFF(SECOND, COALESCE(LAG(tr.reply_date) OVER (PARTITION BY t.ticket_id ORDER BY tr.reply_date), t.created_date), tr.reply_date), 0) AS reply_diff ");
         sb.append("FROM tickets t ");
         sb.append("JOIN ticket_replies tr ON t.ticket_id = tr.ticket_id ");
         sb.append("JOIN users u ON tr.user_id = u.user_id ");
         sb.append("JOIN ticket_severities ttt ON t.severity_id = ttt.severity_id ");
         sb.append("WHERE u.user_id = :userID AND ");
         sb.append("t.created_date BETWEEN :start_date AND :end_date ");
-
         if(severityOpt.isPresent()) {
             sb.append("AND ttt.severity_name = :severity_name ");
         }
+        sb.append(") AS sub ");
 
-        if (!timeFunction.isEmpty()) {
-            sb.append("GROUP BY u.user_id, ");
-            sb.append(timeFunction.substring(0, timeFunction.length() - 2));
-        }
+        sb.append("GROUP BY sub.user_id, ");
+        sb.append(timeFunction.substring(0, timeFunction.length() - 2));
 
         return userGraphRepository.executeQuery(sb.toString(), userID, startDate, endDate, severityOpt);
     }
@@ -371,29 +360,17 @@ public class TicketService {
     public List<Object[]> getResponseTimeMetricsDepartmentPerUser(Optional<String> granularityOpt, Integer departmentID, LocalDateTime startDate, LocalDateTime endDate, Optional<String> severityOpt) {
         StringBuilder sb = new StringBuilder();
 
-        String timeFunction = "";
-        if (granularityOpt.isPresent()) {
-            switch (granularityOpt.get()) {
-                case "daily":
-                    timeFunction = "DATE(t.created_date), ";
-                    break;
-                case "weekly":
-                    timeFunction = "WEEK(t.created_date), ";
-                    break;
-                case "monthly":
-                    timeFunction = "MONTH(t.created_date), ";
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid granularity");
-            }
-        }
+        String timeFunction = determineTimeFunction(granularityOpt); // Using the helper function for time granularity
 
-        sb.append("SELECT tr.user_id, u.user_name, ");
+        sb.append("SELECT sub.user_id, sub.user_name, ");
         sb.append(timeFunction);
-        sb.append("AVG(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("MIN(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("MAX(TIMESTAMPDIFF(SECOND, t.created_date, tr.reply_date)), ");
-        sb.append("COUNT(tr.reply_id) ");
+        sb.append("AVG(sub.reply_diff), ");
+        sb.append("MIN(sub.reply_diff), ");
+        sb.append("MAX(sub.reply_diff), ");
+        sb.append("COUNT(sub.reply_id) ");
+        sb.append("FROM (");
+        sb.append("SELECT tr.reply_id, tr.reply_date, t.created_date, tr.user_id, u.user_name, ");
+        sb.append("IFNULL(TIMESTAMPDIFF(SECOND, COALESCE(LAG(tr.reply_date) OVER (PARTITION BY t.ticket_id ORDER BY tr.reply_date), t.created_date), tr.reply_date), 0) AS reply_diff ");
         sb.append("FROM tickets t ");
         sb.append("JOIN ticket_replies tr ON t.ticket_id = tr.ticket_id ");
         sb.append("JOIN users u ON tr.user_id = u.user_id ");
@@ -401,19 +378,32 @@ public class TicketService {
         sb.append("JOIN ticket_severities ttt ON t.severity_id = ttt.severity_id ");
         sb.append("WHERE tt.department_id = :departmentID AND ");
         sb.append("t.created_date BETWEEN :start_date AND :end_date ");
-
         if(severityOpt.isPresent()) {
             sb.append("AND ttt.severity_name = :severity_name ");
         }
+        sb.append(") AS sub ");
 
-        sb.append("GROUP BY tr.user_id");
-
-        if (!timeFunction.isEmpty()) {
-            sb.append(", ");
-            sb.append(timeFunction.substring(0, timeFunction.length() - 2));
-        }
+        sb.append("GROUP BY sub.user_id, ");
+        sb.append(timeFunction.substring(0, timeFunction.length() - 2));
 
         return departmentGraphRepository.executeQuery(sb.toString(), departmentID, startDate, endDate, severityOpt);
+    }
+
+    // Helper function to determine time granularity
+    private String determineTimeFunction(Optional<String> granularityOpt) {
+        if (!granularityOpt.isPresent()) {
+            return "";
+        }
+        switch (granularityOpt.get()) {
+            case "daily":
+                return "DATE(sub.created_date), ";
+            case "weekly":
+                return "WEEK(sub.created_date), ";
+            case "monthly":
+                return "MONTH(sub.created_date), ";
+            default:
+                throw new IllegalArgumentException("Invalid granularity");
+        }
     }
 
 //    public Long getTicketsCountByTimeframe(LocalDateTime start, LocalDateTime end) {

@@ -48,7 +48,7 @@ public class TicketTagService {
         ticketTag.setTagName(ticketTagDTO.getTagName());
         ticketTag.setDescription(ticketTagDTO.getDescription());
 
-        Department department = departmentRepository.findById(ticketTagDTO.getDepartmentID()).orElseThrow(() -> new RuntimeException("Department not found"));
+        Department department = departmentRepository.findById(user.getDepartment().getDepartmentID()).orElseThrow(() -> new RuntimeException("Department not found"));
         ticketTag.setDepartment(department);
 
         ticketTag.setUser(user);
@@ -59,22 +59,38 @@ public class TicketTagService {
     }
 
     public TicketTag editTicketTag(Integer ticketTagID, TicketTagDTO ticketTagDTO, User authenticatedUser) {
+
         TicketTag existingTicketTag = ticketTagRepository.findById(ticketTagID)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket tag not found"));
 
-        existingTicketTag.setTagName(ticketTagDTO.getTagName());
-        existingTicketTag.setDescription(ticketTagDTO.getDescription());
+        if(authenticatedUser.getUserID() == existingTicketTag.getUser().getUserID()) {
+            existingTicketTag.setTagName(ticketTagDTO.getTagName());
+            existingTicketTag.setDescription(ticketTagDTO.getDescription());
 
-        Department department = departmentRepository.findById(ticketTagDTO.getDepartmentID())
-                .orElseThrow(() -> new EntityNotFoundException("Department not found"));
-        existingTicketTag.setDepartment(department);
+//        Department department = departmentRepository.findById(ticketTagDTO.getDepartmentID())
+//                .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+//        existingTicketTag.setDepartment(department);
+//
+//        existingTicketTag.setUser(authenticatedUser);
+        }
 
-        existingTicketTag.setUser(authenticatedUser);
+        else{
+            throw new RuntimeException("You're not allowed to edit this ticket tag");
+        }
 
         return ticketTagRepository.save(existingTicketTag);
     }
 
-    public void deleteTicketTag(Integer tagID) {
-        ticketTagRepository.deleteById(tagID);
+    public void deleteTicketTag(Integer tagID, User authenticatedUser) {
+
+        TicketTag existingTicketTag = ticketTagRepository.findById(tagID)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket tag not found"));
+
+        if(authenticatedUser.getUserID() == existingTicketTag.getUser().getUserID()) {
+            ticketTagRepository.deleteById(tagID);
+        }
+        else {
+            throw new RuntimeException("You're not allowed to delete this ticket tag");
+        }
     }
 }

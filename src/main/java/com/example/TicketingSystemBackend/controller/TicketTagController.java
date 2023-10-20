@@ -42,7 +42,6 @@ public class TicketTagController {
         String userEmail = jwtUtil.extractUsername(token);
         User authenticatedUser = userService.getUserByEmail(userEmail);
 
-
         TicketTag ticketTag = ticketTagService.createTicketTag(ticketTagDTO, authenticatedUser);
         return ResponseEntity.ok(ticketTag.toDTO());
     }
@@ -66,8 +65,13 @@ public class TicketTagController {
 
     @PreAuthorize("hasAuthority('MANAGE_TICKET_TAGS')")
     @DeleteMapping("/delete/{ticketTagID}")
-    public ResponseEntity<Void> deleteTicketTag(@PathVariable Integer ticketTagID) {
-        ticketTagService.deleteTicketTag(ticketTagID);
+    public ResponseEntity<Void> deleteTicketTag(@PathVariable Integer ticketTagID,
+                                                @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.substring(7);
+        String userEmail = jwtUtil.extractUsername(token);
+        User authenticatedUser = userService.getUserByEmail(userEmail);
+
+        ticketTagService.deleteTicketTag(ticketTagID, authenticatedUser);
         return ResponseEntity.noContent().build();
     }
 }

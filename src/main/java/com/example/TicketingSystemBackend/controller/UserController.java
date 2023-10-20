@@ -1,5 +1,6 @@
 package com.example.TicketingSystemBackend.controller;
 
+import com.example.TicketingSystemBackend.dto.CreateUserDTO;
 import com.example.TicketingSystemBackend.dto.JwtResponseDTO;
 import com.example.TicketingSystemBackend.dto.LoginRequestDTO;
 import com.example.TicketingSystemBackend.model.User;
@@ -45,7 +46,7 @@ public class UserController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_USER')")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@RequestBody CreateUserDTO user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }

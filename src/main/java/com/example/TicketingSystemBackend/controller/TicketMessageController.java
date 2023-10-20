@@ -125,14 +125,14 @@ public class TicketMessageController {
 
         if (isCustomer) {
             recipientEmail = ticket.getAssignedTo().getEmail();
-            subject = "Ticket #" + ticketId + " Has Been Updated";
+            subject = "Ticket #" + ticket.getTicketNumber() + " Has Been Updated";
             messageBody = "Hello " + ticket.getAssignedTo().getName() + ",\n\n" +
-                    "Ticket #" + ticketId + " has received a new reply from the customer. Please check it in our system.\n\n" +
+                    "Ticket #" + ticket.getTicketNumber() + " has received a new reply from the customer. Please check it in our system.\n\n" +
                     "Regards,\n" +
                     "Support Team";
         } else {
             recipientEmail = ticket.getCustomer().getEmail();
-            subject = "Your Ticket #" + ticketId + " Has Been Replied To";
+            subject = "Your Ticket #" + ticket.getTicketNumber() + " Has Been Replied To";
             messageBody = "Dear " + ticket.getCustomer().getName() + ",\n\n" +
                     "Your ticket has received a new reply. Please check it in our system.\n\n" +
                     "Regards,\n" +

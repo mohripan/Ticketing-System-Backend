@@ -22,7 +22,7 @@ public class JwtUtil {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("${jwt.expiration.time}") // Reading the property
+    @Value("${jwt.expiration.time}")
     private long jwtExpirationTime;
 
     private DecodedJWT decodeToken(String token) {

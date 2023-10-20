@@ -1,5 +1,6 @@
 package com.example.TicketingSystemBackend.service;
 
+import com.example.TicketingSystemBackend.dto.CreateUserDTO;
 import com.example.TicketingSystemBackend.dto.UserDTO;
 import com.example.TicketingSystemBackend.model.Department;
 import com.example.TicketingSystemBackend.model.Role;
@@ -10,6 +11,8 @@ import com.example.TicketingSystemBackend.repository.UserRepository;
 import com.example.TicketingSystemBackend.security.util.JwtUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -78,18 +81,40 @@ public class UserService {
         return userRepository.findByEmail(email).orElse(null);
     }
 
-    public User createUser(User user) {
-        user.setEncryptedPassword(passwordEncoder.encode(user.getEncryptedPassword()));
+    public User createUser(CreateUserDTO request) {
+        User user = new User();
 
-        if(user.getDepartment() != null && user.getDepartment().getDepartmentID() != null) {
-            Department department = departmentRepository.findById(user.getDepartment().getDepartmentID())
-                    .orElseThrow(() -> new RuntimeException("Department Not Found"));
-            user.setDepartment(department);
+        boolean findDepartmentByID = true; // for demonstration only
+
+        user.setEmail(request.getEmail());
+        user.setEncryptedPassword(passwordEncoder.encode(request.getEncryptedPassword()));
+        user.setUserName(request.getUserName());
+        user.setName(request.getName());
+
+        if(findDepartmentByID) {
+            // This code is to set the department based on the Auth User
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+
+            User authenticatedUser = userRepository.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+            user.setDepartment(authenticatedUser.getDepartment());
+
+            // STAFF Role
+            Role role = roleRepository.findById(2)
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
+            user.setRole(role);
         }
 
-        if(user.getRole() != null && user.getRole().getRoleId() != null) {
-            Role role = roleRepository.findById(user.getRole().getRoleId())
-                    .orElseThrow(() -> new RuntimeException("Role Not Found"));
+        else {
+            // Set department and role manually in .json body
+            Department department = departmentRepository.findById(request.getDepartmentID())
+                    .orElseThrow(() -> new RuntimeException("Department not found"));
+            user.setDepartment(department);
+
+            Role role = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
             user.setRole(role);
         }
 
